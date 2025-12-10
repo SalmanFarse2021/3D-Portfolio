@@ -1,0 +1,87 @@
+[
+    {
+        "id": "aisocial",
+        "title": "AiSocial",
+        "description": "AI-powered social media platform with multimodal tools, real-time chat, and scalable architecture.",
+        "technologies": [
+            "Next.js",
+            "React",
+            "TypeScript",
+            "Node.js",
+            "MongoDB",
+            "Tailwind",
+            "Gemini Vision API",
+            "WebSockets"
+        ],
+        "image": "/projects/AiSocial.png",
+        "githubLink": "https://github.com/SalmanFarse2021/AiSocial.git",
+        "websiteLink": "https://aisocial-demo.vercel.app",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "id": "hk-signature",
+        "title": "HK Signature",
+        "description": "Full-stack custom signature e-commerce platform with AI-powered content generation, complete admin CMS, and robust order management.",
+        "technologies": [
+            "React",
+            "Node.js",
+            "MongoDB",
+            "Tailwind",
+            "Cloudinary",
+            "Gemini API"
+        ],
+        "image": "/projects/HK_Signature.png",
+        "githubLink": "https://github.com/SalmanFarse2021/HK-Signature.git",
+        "websiteLink": "https://hk-signature-frontend.onrender.com/",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "id": "generative-ai-studio",
+        "title": "Generative AI Studio",
+        "description": "A unified AI platform combining Google Gemini for text and Hugging Face FLUX.1 for image generation in a secure, modern interface.",
+        "technologies": [
+            "JavaScript",
+            "Node.js",
+            "Express",
+            "Google Gemini API",
+            "Hugging Face API",
+            "CSS3"
+        ],
+        "image": "/projects/GenerativeAi.png",
+        "githubLink": "https://github.com/SalmanFarse2021/GenerativeAi.git",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "id": "expense-tracker",
+        "title": "AI Expense Tracker",
+        "description": "Smart financial tracking app using Google Gemini 2.0 for automated receipt parsing, interactive analytics, and secure Google OAuth.",
+        "technologies": [
+            "React",
+            "Node.js",
+            "Express",
+            "MongoDB",
+            "Google Gemini API",
+            "Tailwind",
+            "Recharts"
+        ],
+        "image": "/projects/Expenses_Tracker.png",
+        "githubLink": "https://github.com/SalmanFarse2021/Expenses-Tracker.git",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    }
+]

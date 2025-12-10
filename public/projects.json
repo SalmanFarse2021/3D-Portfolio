@@ -1,0 +1,53 @@
+[
+    {
+        "id": "1",
+        "title": "AI Social Platform",
+        "description": "Next.js social app with AI features",
+        "technologies": [
+            "Next.js",
+            "Gemini",
+            "Tailwind"
+        ],
+        "image": "/projects/social.jpg",
+        "link": "https://github.com/example/social",
+        "position": [
+            -2,
+            0,
+            0
+        ]
+    },
+    {
+        "id": "2",
+        "title": "3D E-Commerce",
+        "description": "Interactive 3D product configurator",
+        "technologies": [
+            "R3F",
+            "Three.js",
+            "React"
+        ],
+        "image": "/projects/ecommerce.jpg",
+        "link": "https://github.com/example/ecommerce",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "id": "3",
+        "title": "Portfolio v1",
+        "description": "Minimalist developer portfolio",
+        "technologies": [
+            "React",
+            "CSS",
+            "Vercel"
+        ],
+        "image": "/projects/portfolio.jpg",
+        "link": "https://github.com/example/portfolio",
+        "position": [
+            2,
+            0,
+            0
+        ]
+    }
+]
