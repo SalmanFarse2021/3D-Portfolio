@@ -99,7 +99,7 @@ export default function ProjectCard({ project, onClick }: ProjectCardProps) {
                         onClick={() => {
                             const event = new CustomEvent('open-ai-chat', {
                                 detail: {
-                                    message: `Tell me more about the project "${project.title}". It's described as: ${project.description}. Technologies used: ${project.technologies.join(', ')}.`
+                                    message: `Tell me more about the project "${project.title}"`
                                 }
                             });
                             window.dispatchEvent(event);

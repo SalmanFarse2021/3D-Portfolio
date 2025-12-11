@@ -22,24 +22,46 @@ export async function generateAIResponse(userMessage: string): Promise<string> {
         return "I'm sorry, but the AI service is not configured. Please contact the site administrator.";
     }
 
-    try {
-        // Use gemini-pro model with specific configuration
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-pro',
-            generationConfig: {
-                temperature: 0.4,
+    let retries = 0;
+    const maxRetries = 3;
+
+    while (retries < maxRetries) {
+        try {
+            // Use gemini-2.5-flash model with specific configuration
+            const model = genAI.getGenerativeModel({
+                model: 'gemini-2.5-flash',
+                generationConfig: {
+                    temperature: 0.4,
+                }
+            });
+
+            const prompt = buildPrompt(projects, userMessage);
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            return text;
+        } catch (error: any) {
+            console.error(`Attempt ${retries + 1} failed:`, error.message);
+
+            if (error.status === 429 || error.message?.includes('429') || error.status === 503) {
+                retries++;
+                if (retries < maxRetries) {
+                    const delay = Math.pow(2, retries) * 1000; // 2s, 4s, 8s
+                    console.log(`Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
             }
-        });
 
-        const prompt = buildPrompt(projects, userMessage);
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        return text;
-    } catch (error) {
-        console.error('Error generating AI response:', error);
-        return "I apologize, but I encountered an error processing your request. Please try again.";
+            // If it's not a retryable error or we ran out of retries
+            console.error('Final Error generating AI response:', error);
+            if (error.status === 429) {
+                return "I'm currently receiving too many requests. Please try again in a minute.";
+            }
+            return "I apologize, but I encountered an error processing your request. Please try again later.";
+        }
     }
+    return "I apologize, but I encountered an error processing your request. Please try again later.";
 }

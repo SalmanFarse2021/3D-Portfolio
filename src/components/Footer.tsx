@@ -96,7 +96,7 @@ export default function Footer() {
                 </div>
 
                 <div className="mt-8 border-t border-gray-800 pt-8 text-center text-gray-400">
-                    <p>&copy; {currentYear} Portfolio. Built with Next.js, React Three Fiber, and Gemini AI.</p>
+                    <p>&copy; {currentYear} Salman Farse. All Rights Reserved.</p>
                 </div>
             </div>
         </footer>
