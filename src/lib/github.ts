@@ -15,6 +15,7 @@ export interface GitHubData {
         name: string;
         description: string | null;
         html_url: string;
+        homepage: string | null;
         language: string | null;
         stargazers_count: number;
         updated_at: string | null;
@@ -49,6 +50,7 @@ export async function fetchGitHubData(): Promise<GitHubData | null> {
                 name: repo.name,
                 description: repo.description,
                 html_url: repo.html_url,
+                homepage: repo.homepage,
                 language: repo.language,
                 stargazers_count: repo.stargazers_count || 0,
                 updated_at: repo.updated_at,

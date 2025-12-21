@@ -131,7 +131,7 @@ Be concise and technical. Focus on actual implementation details from the README
                     id: repo.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                     title: repo.name,
                     description: repo.description || 'No description available',
-                    technologies: [repo.language].filter(Boolean),
+                    technologies: [repo.language].filter(Boolean) as string[],
                     githubLink: repo.html_url,
                     websiteLink: repo.homepage || undefined
                 });
