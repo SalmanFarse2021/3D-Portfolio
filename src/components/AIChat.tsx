@@ -25,10 +25,26 @@ export default function AIChat() {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [explainMode, setExplainMode] = useState(false);
+    const [width, setWidth] = useState(384); // 24rem = 384px (w-96)
+    const [isResizing, setIsResizing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const lastMessageRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messages.length === 0) return;
+
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg.role === 'assistant') {
+            // For assistant messages (answers), aligns the top of the message to the top of the view
+            // consistent with "start and stop at the start of the answer"
+            setTimeout(() => {
+                lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        } else {
+            // For user messages, scroll to bottom as usual
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     useEffect(() => {
@@ -46,23 +62,51 @@ export default function AIChat() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMessage }),
-            });
+            let response: Response | undefined;
+            let data: any;
 
-            const data = await response.json();
+            if (explainMode) {
+                // Parse input for explain mode: "owner/repo/path" or just ask for clarification
+                const match = userMessage.match(/([\w-]+)\/([\w-]+)\/(.+)/);
+                if (match) {
+                    const [, owner, repo, path] = match;
+                    response = await fetch('/api/explain', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ owner, repo, path }),
+                    });
+                    data = await response.json();
 
-            if (data.error) {
-                throw new Error(data.error);
+                    if (data.error) throw new Error(data.error);
+
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: `## Code Explanation: ${data.metadata.file}\n\n${data.explanation}`,
+                        citations: [{ repo: data.metadata.repo, path: data.metadata.file, url: data.metadata.url }]
+                    }]);
+                } else {
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: 'Please specify the file in format: `owner/repo/path/to/file.ts`\n\nExample: `SalmanFarse2021/AiSocial/src/lib/github.ts`',
+                    }]);
+                }
+            } else {
+                // Normal RAG chat mode
+                response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMessage }),
+                });
+                data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: data.response,
+                    citations: data.citations
+                }]);
             }
-
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: data.response,
-                citations: data.citations
-            }]);
         } catch (error) {
             console.error('Chat error:', error);
             setMessages(prev => [
@@ -76,6 +120,37 @@ export default function AIChat() {
             setIsLoading(false);
         }
     };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsResizing(true);
+        e.preventDefault();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (!isResizing) return;
+        const newWidth = window.innerWidth - e.clientX - 24; // 24px = right-6
+        setWidth(Math.max(320, Math.min(800, newWidth))); // Min 320px, Max 800px
+    };
+
+    const handleMouseUp = () => {
+        setIsResizing(false);
+    };
+
+    useEffect(() => {
+        if (isResizing) {
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isResizing]);
 
     return (
         <>
@@ -98,35 +173,105 @@ export default function AIChat() {
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] animate-slide-up">
-                    <div className="glass-effect rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[600px]">
+                <div
+                    className="fixed bottom-24 right-6 z-50 max-w-[calc(100vw-3rem)] animate-slide-up"
+                    style={{ width: `${width}px` }}
+                >
+                    <div className="glass-effect rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[600px] relative">
+                        {/* Resize Handle */}
+                        <div
+                            onMouseDown={handleMouseDown}
+                            className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize bg-primary-400/20 hover:bg-primary-400/50 transition-colors z-10"
+                            title="Drag to resize"
+                            style={{ touchAction: 'none' }}
+                        />
                         {/* Header */}
                         <div className="bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-3 shrink-0">
-                            <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
-                            <p className="text-xs text-white/80">Powered by OpenAI RAG</p>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
+                                    <p className="text-xs text-white/80">
+                                        {explainMode ? 'Explain Code Mode' : 'Powered by OpenAI RAG'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setExplainMode(!explainMode)}
+                                    className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium text-white transition-colors"
+                                    title="Toggle mode"
+                                >
+                                    {explainMode ? '💬 Chat' : '🔍 Explain'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/50">
+                        <div
+                            className="flex-1 overflow-y-scroll overflow-x-hidden space-y-4 bg-gray-900/50 p-0"
+                            style={{
+                                scrollbarWidth: 'none',
+                                msOverflowStyle: 'none',
+                                WebkitOverflowScrolling: 'touch'
+                            }}
+                        >
+                            <style dangerouslySetInnerHTML={{
+                                __html: `
+                                    .flex-1.overflow-y-scroll::-webkit-scrollbar {
+                                        width: 0px !important;
+                                        height: 0px !important;
+                                        display: none !important;
+                                    }
+                                    .flex-1.overflow-y-scroll {
+                                        scrollbar-width: none !important;
+                                        -ms-overflow-style: none !important;
+                                    }
+                                    /* Force code wrapping and hide overflow */
+                                    .prose {
+                                        max-width: 100% !important;
+                                        overflow-x: hidden !important;
+                                    }
+                                    .prose pre {
+                                        white-space: pre-wrap !important;
+                                        word-wrap: break-word !important;
+                                        overflow-x: hidden !important;
+                                        max-width: 100% !important;
+                                    }
+                                    .prose code {
+                                        white-space: pre-wrap !important;
+                                        word-break: break-all !important;
+                                        overflow-wrap: break-word !important;
+                                    }
+                                    /* Ensure links don't overflow */
+                                    .prose a {
+                                        word-break: break-all !important;
+                                    }
+                                `
+                            }} />
                             {messages.map((message, index) => (
                                 <div
                                     key={index}
-                                    className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
+                                    ref={index === messages.length - 1 ? lastMessageRef : null}
+                                    className="flex flex-col w-full overflow-hidden"
                                 >
                                     <div
-                                        className={`max-w-[85%] rounded-lg px-4 py-2 ${message.role === 'user'
+                                        className={`rounded-none px-3 py-2 w-full ${message.role === 'user'
                                             ? 'bg-primary-600 text-white'
                                             : 'bg-gray-800 text-gray-100'
                                             }`}
+                                        style={{
+                                            wordWrap: 'break-word',
+                                            overflowWrap: 'anywhere',
+                                            wordBreak: 'break-word',
+                                            maxWidth: '100%'
+                                        }}
                                     >
-                                        <div className="text-sm prose prose-invert max-w-none">
+                                        <div className="text-sm prose prose-invert max-w-none break-words" style={{ wordBreak: 'break-word' }}>
                                             <ReactMarkdown>{message.content}</ReactMarkdown>
                                         </div>
                                     </div>
 
                                     {/* Citations */}
                                     {message.citations && message.citations.length > 0 && (
-                                        <div className="mt-2 max-w-[85%] space-y-1">
+                                        <div className="mt-2 w-full space-y-1">
                                             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Sources:</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {message.citations.map((cite, i) => (
@@ -148,10 +293,10 @@ export default function AIChat() {
                             ))}
 
                             {isLoading && (
-                                <div className="flex justify-start">
+                                <div className="flex items-start">
                                     <div className="bg-gray-800 rounded-lg px-4 py-2">
                                         <div className="flex gap-1">
-                                            <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                            <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" />
                                             <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                                             <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                                         </div>
@@ -163,20 +308,32 @@ export default function AIChat() {
                         </div>
 
                         {/* Input */}
-                        <form onSubmit={handleSubmit} className="border-t border-gray-700 p-4 bg-gray-900/50 shrink-0">
+                        <form
+                            onSubmit={handleSubmit}
+                            className="border-t border-gray-700 p-2 bg-gray-900/50 shrink-0"
+                        >
                             <div className="flex gap-2">
-                                <input
-                                    type="text"
+                                <textarea
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSubmit(e);
+                                        }
+                                    }}
                                     placeholder="Ask about this code..."
-                                    className="flex-1 rounded-lg bg-gray-800 px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    className="flex-1 rounded-lg bg-gray-800 px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none h-[42px] min-h-[42px] max-h-32 scrollbar-none"
                                     disabled={isLoading}
+                                    style={{
+                                        scrollbarWidth: 'none',
+                                        msOverflowStyle: 'none'
+                                    }}
                                 />
                                 <button
                                     type="submit"
                                     disabled={isLoading || !input.trim()}
-                                    className="rounded-lg bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="rounded-lg bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed h-[42px] flex items-center justify-center"
                                 >
                                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
