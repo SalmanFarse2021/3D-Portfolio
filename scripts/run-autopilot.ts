@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Autopilot } from '../src/lib/autopilot/core';
-import { GitHubServiceImpl, GeminiServiceImpl } from '../src/lib/autopilot/services';
+import { GitHubServiceImpl, OpenAIServiceImpl } from '../src/lib/autopilot/services';
 
 // Helper to load env
 function loadEnv() {
@@ -9,13 +9,13 @@ function loadEnv() {
         const envPath = path.join(process.cwd(), '.env.local');
         if (fs.existsSync(envPath)) {
             const content = fs.readFileSync(envPath, 'utf8');
-            const match = content.match(/GEMINI_API_KEY=(.*)/);
+            const match = content.match(/OPENAI_API_KEY=(.*)/);
             if (match) return match[1].trim();
         }
     } catch (e) {
         console.error('Error loading .env.local', e);
     }
-    return process.env.GEMINI_API_KEY;
+    return process.env.OPENAI_API_KEY;
 }
 
 async function main() {
@@ -27,14 +27,14 @@ async function main() {
 
     const apiKey = loadEnv();
     if (!apiKey) {
-        console.error('GEMINI_API_KEY not found in .env.local');
+        console.error('OPENAI_API_KEY not found in .env.local');
         process.exit(1);
     }
 
     console.log(`Initializing Autopilot for: ${repoUrl}`);
 
     const github = new GitHubServiceImpl();
-    const ai = new GeminiServiceImpl(apiKey);
+    const ai = new OpenAIServiceImpl(apiKey);
     const autopilot = new Autopilot(github, ai);
 
     try {

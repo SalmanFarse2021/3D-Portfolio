@@ -35,6 +35,15 @@ export default function Navigation() {
                                 {link.label}
                             </a>
                         ))}
+
+                        <a
+                            href="/resume.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-full bg-primary-600 px-6 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-700 hover:scale-105 shadow-md hover:shadow-lg"
+                        >
+                            Resume
+                        </a>
                     </div>
 
 
@@ -84,6 +93,15 @@ export default function Navigation() {
                                 {link.label}
                             </a>
                         ))}
+
+                        <a
+                            href="/resume.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block mt-2 rounded-lg px-3 py-2 text-primary-400 font-semibold transition-colors hover:bg-white/10"
+                        >
+                            Resume
+                        </a>
                     </div>
 
                 </div>
