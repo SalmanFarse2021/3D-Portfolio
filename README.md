@@ -1,55 +1,36 @@
 # 3D AI Portfolio
 
-A modern, interactive portfolio website built with Next.js, React Three Fiber, and OpenAI GPT-5.1.
+A high-performance interactive portfolio featuring 3D graphics and a RAG-powered AI assistant that can answer questions about your code.
 
-## 🚀 Features
+## 🛠 Tech Stack
+**Next.js 14**, **TypeScript**, **Tailwind CSS**, **React Three Fiber**, **OpenAI (GPT-5.1)**, **Supabase (pgvector)**
 
--   **3D Hero Section**: Interactive floating geometry and particle fields using React Three Fiber.
--   **AI Chat Assistant**: Integrated OpenAI (GPT-5.1) chatbot with real-time GitHub data access.
--   **Live GitHub Integration**: Fetches your latest repositories and stats directly from GitHub.
--   **Qualifications Timeline**: A sleek, tabbed interface for viewing Education and Experience.
--   **Smart Project Grid**: Progressive loading and filtering for project showcases.
--   **Responsive Design**: Fully optimized with a premium glassmorphism aesthetic.
+## 🚀 Key Features
+- **RAG Chatbot**: "Talk to my code" - indexes GitHub repos for technical Q&A.
+- **3D Hero**: Interactive floating geometry.
+- **Live GitHub**: Real-time stats and repo fetching.
+- **Smart Indexing**: Admin dashboard to ingest codebase knowledge.
 
-## 🛠️ Tech Stack
+## ⚡️ Quick Start
 
--   **Framework**: Next.js 14 (App Router)
--   **Styling**: Tailwind CSS
--   **3D Graphics**: React Three Fiber / Drei
--   **AI**: OpenAI API (GPT-5.1)
--   **Data Fetching**: Octokit (GitHub API)
--   **Language**: TypeScript
+1. **Clone & Install**
+   ```bash
+   git clone [repo-url]
+   npm install
+   ```
 
-## 🏃‍♂️ Getting Started
+2. **Configure Environment** (`.env.local`)
+   ```env
+   OPENAI_API_KEY=sk-...
+   GITHUB_TOKEN=ghp_...
+   VECTOR_DB_URL=https://...
+   VECTOR_DB_KEY=...
+   ```
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/portfolio.git
-    cd portfolio
-    ```
+3. **Run**
+   ```bash
+   npm run dev
+   ```
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Environment Setup**:
-    Create a `.env.local` file in the root directory:
-    ```bash
-    OPENAI_API_KEY=your_openai_api_key
-    GITHUB_TOKEN=your_github_pat
-    ```
-
-4.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000).
-
-## 📦 Deployment
-
-This project is optimized for **Vercel**. Ensure you add `OPENAI_API_KEY` and `GITHUB_TOKEN` to your deployment environment variables.
-
----
-
-Built with ❤️ by Salman Farse
+## 🧠 Indexing Code for Chat
+Go to `/admin/index` and enter your API key to build the vector database.
