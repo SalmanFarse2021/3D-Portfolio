@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 interface Citation {
@@ -31,7 +31,7 @@ export default function AIChat() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const lastMessageRef = useRef<HTMLDivElement>(null);
 
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         if (messages.length === 0) return;
 
         const lastMsg = messages[messages.length - 1];
@@ -45,11 +45,11 @@ export default function AIChat() {
             // For user messages, scroll to bottom as usual
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
-    };
+    }, [messages]);
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [scrollToBottom]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
