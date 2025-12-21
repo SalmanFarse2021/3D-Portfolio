@@ -47,7 +47,7 @@ export const AUTOPILOT_CONFIG = {
     BATCH_SIZE: 2, // Reduced to avoid rate limits
 
     // Model Settings
-    MODEL_NAME: 'gemini-2.5-flash', // Long context model
+    MODEL_NAME: 'gpt-5.1', // Long context model
     TEMPERATURE: 0.1, // Low temperature for deterministic output
 
     // Safety

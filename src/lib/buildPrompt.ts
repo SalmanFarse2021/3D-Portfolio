@@ -1,6 +1,7 @@
 import { Project } from '@/types/project';
+import { GitHubData } from './github';
 
-export function buildPrompt(projects: Project[], userQuestion: string): string {
+export function buildPrompt(projects: Project[], userQuestion: string, githubData: GitHubData | null = null): string {
     const profileContext = `
 Name: Salman Farse
 Role: Software & AI Engineer
@@ -32,6 +33,25 @@ Project ${index + 1}: ${project.title}
 - Link: ${project.link || project.githubLink || project.websiteLink || 'N/A'}
 `).join('\n');
 
+    let githubContext = "GitHub Data: Not available";
+    if (githubData) {
+        const repoList = githubData.repositories.map(repo =>
+            `- ${repo.name}: ${repo.description || 'No description'} (${repo.html_url}) [${repo.stargazers_count} stars]`
+        ).join('\n');
+
+        githubContext = `
+=== REAL-TIME GITHUB STATS ===
+Profile: ${githubData.profile.login}
+Bio: ${githubData.profile.bio || 'N/A'}
+Public Repos: ${githubData.profile.public_repos}
+Followers: ${githubData.profile.followers}
+Profile URL: ${githubData.profile.html_url}
+
+Top/Recent Repositories:
+${repoList}
+`;
+    }
+
     return `
 You are an AI assistant for Salman Farse's portfolio website. You are helpful, professional, and friendly.
 You have access to the following information about Salman and his projects:
@@ -39,16 +59,19 @@ You have access to the following information about Salman and his projects:
 === PROFILE INFORMATION ===
 ${profileContext}
 
-=== PROJECT PORTFOLIO ===
+=== PROJECT PORTFOLIO (Curated) ===
 ${projectContext}
+
+${githubContext}
 
 User Question: "${userQuestion}"
 
 Instructions:
-- Answer the user's question based on the provided Profile Information and Project Portfolio.
+- Answer the user's question based on the provided Profile Information, Project Portfolio, and GitHub Stats.
 - If the question is about Salman (background, education, contact, etc.), use the Profile Information.
 - If the question is about his projects, use the Project Portfolio.
-- If the question is general (e.g., "What skills do you have?"), synthesize information from both sections.
+- If the question specifically asks for "latest" or "recent" work, prioritize the Real-Time GitHub Stats as they are more up-to-date.
+- If the question is general (e.g., "What skills do you have?"), synthesize information from all sections.
 - Be concise but informative.
 - If the answer cannot be found in the context, politely state that you don't have that specific information but offer to help with something else you do know about.
 - Speak in the first person as if you are Salman's digital assistant, or refer to him as "Salman".

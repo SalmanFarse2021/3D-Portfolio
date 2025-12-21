@@ -1,51 +1,54 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import { Project } from '@/types/project';
 import projectsData from '@/data/projects.json';
 import { buildPrompt } from './buildPrompt';
+import { fetchGitHubData } from './github';
 
 // Cast JSON data to Project type
 const projects: Project[] = projectsData as unknown as Project[];
 
-if (!process.env.GEMINI_API_KEY) {
-    console.warn('GEMINI_API_KEY is not set. AI features will not work.');
+if (!process.env.OPENAI_API_KEY) {
+    console.warn('OPENAI_API_KEY is not set. AI features will not work.');
 }
 
-const genAI = process.env.GEMINI_API_KEY
-    ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const openai = process.env.OPENAI_API_KEY
+    ? new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    })
     : null;
 
 /**
- * Generate AI response using Gemini
+ * Generate AI response using OpenAI
  */
 export async function generateAIResponse(userMessage: string): Promise<string> {
-    if (!genAI) {
+    if (!openai) {
         return "I'm sorry, but the AI service is not configured. Please contact the site administrator.";
     }
+
+    // Fetch GitHub data for real-time context
+    const githubData = await fetchGitHubData();
 
     let retries = 0;
     const maxRetries = 3;
 
     while (retries < maxRetries) {
         try {
-            // Use gemini-2.5-flash model with specific configuration
-            const model = genAI.getGenerativeModel({
-                model: 'gemini-2.5-flash',
-                generationConfig: {
-                    temperature: 0.4,
-                }
+            const prompt = buildPrompt(projects, userMessage, githubData);
+
+            const completion = await openai.chat.completions.create({
+                messages: [
+                    { role: "user", content: prompt }
+                ],
+                model: "gpt-5.1",
+                temperature: 0.4,
             });
 
-            const prompt = buildPrompt(projects, userMessage);
-
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-
-            return text;
+            const content = completion.choices[0].message.content;
+            return content || "I apologize, but I couldn't generate a response.";
         } catch (error: any) {
             console.error(`Attempt ${retries + 1} failed:`, error.message);
 
-            if (error.status === 429 || error.message?.includes('429') || error.status === 503) {
+            if (error.status === 429 || error.status === 500 || error.status === 503) {
                 retries++;
                 if (retries < maxRetries) {
                     const delay = Math.pow(2, retries) * 1000; // 2s, 4s, 8s
@@ -55,7 +58,6 @@ export async function generateAIResponse(userMessage: string): Promise<string> {
                 }
             }
 
-            // If it's not a retryable error or we ran out of retries
             console.error('Final Error generating AI response:', error);
             if (error.status === 429) {
                 return "I'm currently receiving too many requests. Please try again in a minute.";

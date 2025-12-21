@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import { AUTOPILOT_CONFIG } from './config';
 
 // --- Interfaces (matching core.ts) ---
@@ -74,18 +74,11 @@ export class GitHubServiceImpl implements GitHubService {
     }
 }
 
-export class GeminiServiceImpl implements AIService {
-    private genAI: GoogleGenerativeAI;
-    private model: any;
+export class OpenAIServiceImpl implements AIService {
+    private openai: OpenAI;
 
     constructor(apiKey: string) {
-        this.genAI = new GoogleGenerativeAI(apiKey);
-        this.model = this.genAI.getGenerativeModel({
-            model: AUTOPILOT_CONFIG.MODEL_NAME,
-            generationConfig: {
-                temperature: AUTOPILOT_CONFIG.TEMPERATURE,
-            }
-        });
+        this.openai = new OpenAI({ apiKey });
     }
 
     async generateContent(prompt: string): Promise<string> {
@@ -94,9 +87,13 @@ export class GeminiServiceImpl implements AIService {
 
         while (retries < maxRetries) {
             try {
-                const result = await this.model.generateContent(prompt);
-                const response = await result.response;
-                let text = response.text();
+                const completion = await this.openai.chat.completions.create({
+                    messages: [{ role: "user", content: prompt }],
+                    model: AUTOPILOT_CONFIG.MODEL_NAME,
+                    temperature: AUTOPILOT_CONFIG.TEMPERATURE,
+                });
+
+                let text = completion.choices[0].message.content || '';
 
                 // Clean up Markdown code blocks if present in JSON response
                 if (text.startsWith('```json')) {
@@ -107,17 +104,17 @@ export class GeminiServiceImpl implements AIService {
 
                 return text;
             } catch (error: any) {
-                if (error.status === 429 || error.message?.includes('429')) {
+                if (error.status === 429) {
                     retries++;
                     const delay = Math.pow(2, retries) * 2000; // 4s, 8s, 16s
                     console.warn(`Rate limit hit. Retrying in ${delay}ms... (Attempt ${retries}/${maxRetries})`);
                     await new Promise(resolve => setTimeout(resolve, delay));
                     continue;
                 }
-                console.error('Gemini generation error:', error);
+                console.error('OpenAI generation error:', error);
                 throw error;
             }
         }
-        throw new Error('Max retries exceeded for Gemini API');
+        throw new Error('Max retries exceeded for OpenAI API');
     }
 }
