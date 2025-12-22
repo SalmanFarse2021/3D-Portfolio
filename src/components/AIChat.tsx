@@ -51,6 +51,36 @@ export default function AIChat() {
         scrollToBottom();
     }, [scrollToBottom]);
 
+    // Load history from localStorage on mount
+    useEffect(() => {
+        const savedMessages = localStorage.getItem('chatHistory');
+        if (savedMessages) {
+            try {
+                setMessages(JSON.parse(savedMessages));
+            } catch (e) {
+                console.error('Failed to parse chat history', e);
+            }
+        }
+    }, []);
+
+    // Save history to localStorage whenever messages change
+    useEffect(() => {
+        if (messages.length > 0) {
+            localStorage.setItem('chatHistory', JSON.stringify(messages));
+        }
+    }, [messages]);
+
+    const handleClearChat = () => {
+        if (confirm('Are you sure you want to clear the conversation history?')) {
+            const initialMessage: Message[] = [{
+                role: 'assistant',
+                content: "Hi! I'm an AI assistant powered by RAG. Ask me anything about the code and projects in this portfolio!",
+            }];
+            setMessages(initialMessage);
+            localStorage.removeItem('chatHistory');
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -196,18 +226,28 @@ export default function AIChat() {
                         <div className="bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-3 shrink-0">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
                                     <p className="text-xs text-white/80">
                                         {explainMode ? 'Explain Code Mode' : 'Powered by OpenAI RAG'}
                                     </p>
                                 </div>
-                                <button
-                                    onClick={() => setExplainMode(!explainMode)}
-                                    className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium text-white transition-colors"
-                                    title="Toggle mode"
-                                >
-                                    {explainMode ? '💬 Chat' : '🔍 Explain'}
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleClearChat}
+                                        className="px-2 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
+                                        title="Clear history"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => setExplainMode(!explainMode)}
+                                        className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium text-white transition-colors"
+                                        title="Toggle mode"
+                                    >
+                                        {explainMode ? '💬 Chat' : '🔍 Explain'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
