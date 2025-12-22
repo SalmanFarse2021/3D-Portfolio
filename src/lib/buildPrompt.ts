@@ -1,3 +1,5 @@
+import { Project } from '@/types/project';
+import { GitHubData } from '@/lib/github';
 
 export type ChatMode = 'general' | 'recruiter' | 'tech';
 

@@ -59,6 +59,7 @@ export default function PortfolioChatbot() {
             handleSubmit(null, initialQuery, initialRepoFilter || undefined);
             clearInitialQuery();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, initialQuery, initialRepoFilter]);
 
     const handleSuggestedClick = (question: string) => {
