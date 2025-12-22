@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { z } from 'zod';
+
+export const maxDuration = 60; // Allow up to 60 seconds for response (Vercel Pro/Hobby limits apply)
 import { generateEmbeddings } from '@/lib/embeddings';
 import { searchSimilar } from '@/lib/vectorStore';
 import { buildPrompt } from '@/lib/buildPrompt';
