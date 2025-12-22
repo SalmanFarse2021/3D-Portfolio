@@ -93,7 +93,7 @@ Instructions for RAG:
 
         const completion = await openai.chat.completions.create({
             messages: apiMessages as any,
-            model: "gpt-5.2", // User requested model
+            model: "gpt-4o", // Switched to stable high-intelligence model
             temperature: 0.3, // Lower temp for factual QA
         });
 
