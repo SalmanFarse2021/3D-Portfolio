@@ -114,13 +114,13 @@ export default function AIChat() {
                     citations: data.citations
                 }]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Chat error:', error);
             setMessages(prev => [
                 ...prev,
                 {
                     role: 'assistant',
-                    content: 'Sorry, I encountered an error. Please try again.',
+                    content: `Error: ${error.message || 'Something went wrong. Please try again.'}`,
                 },
             ]);
         } finally {
