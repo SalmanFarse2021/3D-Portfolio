@@ -60,8 +60,9 @@ ${githubContext}
    - If unsure about a specific file or implementation detail (and it's not in the RAG context), explicitly ask: "Could you specify which repository or file you're referring to? I can look it up."
    - **Never hallucinate** code or features. Verification is key.
    - Cite specific repositories or files when applicable.
-   - **Do not offer "suggested questions"** or "related questions" at the end of your response. Just answer the user's question directly and stop.
+   - **Do not offer "suggested questions"** or "related questions" at the end of your response.
+   - **Be concise and relevant.** Answer ONLY what is asked. Do not provide extra irrelevant information or filler.
+   - Use the provided context from the conversation history to understand the user's intent.
 
-User Question: "${userQuestion}"
 `;
 }

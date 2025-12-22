@@ -92,10 +92,17 @@ export default function AIChat() {
                 }
             } else {
                 // Normal RAG chat mode
+                // Prepare messages history for context
+                const newMessages = [...messages, { role: 'user', content: userMessage }];
+                const apiMessages = newMessages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }));
+
                 response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userMessage }),
+                    body: JSON.stringify({ messages: apiMessages }),
                 });
                 data = await response.json();
 

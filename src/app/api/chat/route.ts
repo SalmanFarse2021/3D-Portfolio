@@ -29,19 +29,20 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { message, repoFilter } = await request.json();
+        const { messages, repoFilter } = await request.json();
 
-        if (!message || typeof message !== 'string') {
-            return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
         }
 
+        // Get the last user message for RAG context
+        const lastUserMessage = messages[messages.length - 1];
+        const userQuery = lastUserMessage.content;
+
         // 1. Generate Query Embedding
-        const [embedding] = (await generateEmbeddings([message])) || [];
+        const [embedding] = (await generateEmbeddings([userQuery])) || [];
         if (!embedding) {
             logger.warn('Failed to generate embedding for query');
-            // Fallback to standard context-less chat if embedding fails? 
-            // For now, let's proceed with just basic context or fail.
-            // Depending on reliability, falling back to buildPrompt without RAG is safer.
         }
 
         // 2. Vector Search (RAG)
@@ -65,13 +66,13 @@ ${doc.content}
         const githubData = await fetchGitHubData();
 
         // 5. Build System Prompt
-        // We override the standard buildPrompt with our RAG-enhanced version locally or pass it in
-        const systemPrompt = buildPrompt(projects, message, githubData);
+        // We pass the userQuery just for logging/reference in buildPrompt if needed, 
+        // but the prompt itself will be the system instructions.
+        const baseSystemPrompt = buildPrompt(projects, userQuery, githubData);
 
-        // Inject RAG context into the prompt
-        // We can append it to the system message or user message
-        const fullPrompt = `
-${systemPrompt}
+        // Inject RAG context into the system prompt
+        const systemMessageContent = `
+${baseSystemPrompt}
 
 === RELEVANT CODEBASE CONTEXT (Retrieved from RAG) ===
 ${ragContext}
@@ -83,19 +84,21 @@ Instructions for RAG:
 - If the context doesn't contain the answer, rely on your general knowledge but admit if you can't see the specific file code requested.
 `;
 
-        // 6. Call OpenAI
+        // 6. Call OpenAI with History
+        // Construct the full message chain: System Message + Conversation History
+        const apiMessages = [
+            { role: "system", content: systemMessageContent },
+            ...messages
+        ];
+
         const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "user", content: fullPrompt }
-            ],
-            model: "gpt-5.1", // Or gpt-4o
+            messages: apiMessages as any,
+            model: "gpt-5.2", // User requested model
             temperature: 0.3, // Lower temp for factual QA
         });
 
         const responseContent = completion.choices[0].message.content;
 
-        // Extract citations if needed or rely on LLM to textually cite
-        // We can return the source docs to the frontend for UI display
         const sources = contextChunks.map(c => ({
             repo: c.repo,
             path: c.path,
