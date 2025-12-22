@@ -93,11 +93,11 @@ Instructions for RAG:
 
         const completion = await openai.chat.completions.create({
             messages: apiMessages as any,
-            model: "gpt-4o", // Switched to stable high-intelligence model
+            model: "gpt-5.2", // User requested model
             temperature: 0.3, // Lower temp for factual QA
         });
 
-        const responseContent = completion.choices[0].message.content;
+        const responseContent = completion.choices[0].message.content || "No response generated.";
 
         const sources = contextChunks.map(c => ({
             repo: c.repo,
@@ -114,8 +114,9 @@ Instructions for RAG:
 
     } catch (error: any) {
         logger.error('Chat API error:', error);
+        // Return specific error message for debugging
         return NextResponse.json(
-            { error: 'Failed to process request' },
+            { error: error.message || 'Failed to process request' },
             { status: 500 }
         );
     }
