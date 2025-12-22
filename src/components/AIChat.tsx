@@ -228,12 +228,17 @@ export default function AIChat() {
                                     .prose {
                                         max-width: 100% !important;
                                         overflow-x: hidden !important;
+                                        word-break: break-word !important;
+                                        overflow-wrap: anywhere !important;
                                     }
                                     .prose pre {
                                         white-space: pre-wrap !important;
                                         word-wrap: break-word !important;
                                         overflow-x: hidden !important;
                                         max-width: 100% !important;
+                                        padding: 1rem !important;
+                                        background-color: rgb(17, 24, 39) !important; /* bg-gray-900 */
+                                        border-radius: 0.5rem !important;
                                     }
                                     .prose code {
                                         white-space: pre-wrap !important;
@@ -264,7 +269,7 @@ export default function AIChat() {
                                             maxWidth: '100%'
                                         }}
                                     >
-                                        <div className="text-sm prose prose-invert max-w-none break-words" style={{ wordBreak: 'break-word' }}>
+                                        <div className="text-sm prose prose-invert max-w-none break-words w-full" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                                             <ReactMarkdown>{message.content}</ReactMarkdown>
                                         </div>
                                     </div>
