@@ -15,8 +15,8 @@
             "MongoDB"
         ],
         "image": "/projects/Doctor.ai.png",
-        "githubLink": "",
-        "websiteLink": "",
+        "githubLink": "https://github.com/SalmanFarse2021/Doctor.ai",
+        "websiteLink": "https://doctor-ai-01.vercel.app/",
         "position": [
             0,
             0,
