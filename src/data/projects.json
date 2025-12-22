@@ -1,5 +1,29 @@
 [
     {
+        "id": "doctor-ai",
+        "title": "Doctor.ai - A next Gen AI Doctor.",
+        "description": "Doctor.ai is an intelligent diagnostic assistant that leverages AI to analyze patient symptoms and lab data, delivering instant disease predictions with precise probability scores. Beyond diagnosis, it generates comprehensive, curative health plans—covering nutrition, lifestyle, and medication—to actively accelerate user recovery. Built with Next.js and FastAPI, the platform ensures a seamless, responsive experience for accessible personal health management.",
+        "technologies": [
+            "Next.js",
+            "TypeScript",
+            "Tailwind CSS",
+            "FastAPI",
+            "Python",
+            "LangChain",
+            "CCR",
+            "OpenAI",
+            "MongoDB"
+        ],
+        "image": "/projects/Doctor.ai.png",
+        "githubLink": "",
+        "websiteLink": "",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
         "id": "aisocial",
         "title": "AiSocial",
         "description": "AI-powered social media platform with multimodal tools, real-time chat, and scalable architecture.",
