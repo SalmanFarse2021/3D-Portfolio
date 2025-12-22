@@ -1,5 +1,8 @@
+'use client';
+
 import { Project } from '@/types/project';
 import Image from 'next/image';
+import { useChat } from '@/context/ChatContext';
 
 interface ProjectCardProps {
     project: Project;
@@ -7,6 +10,7 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, onClick }: ProjectCardProps) {
+    const { openChatWithQuery } = useChat();
     return (
         <article
             className="group glass-effect rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-2xl animate-fade-in flex flex-col h-full cursor-pointer"
@@ -96,13 +100,16 @@ export default function ProjectCard({ project, onClick }: ProjectCardProps) {
 
                     {/* Ask AI */}
                     <button
-                        onClick={() => {
-                            const event = new CustomEvent('open-ai-chat', {
-                                detail: {
-                                    message: `Tell me more about the project "${project.title}"`
-                                }
-                            });
-                            window.dispatchEvent(event);
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            // Extract repo name from URL (e.g., https://github.com/Start-Up-House/Fintrion -> Fintrion)
+                            // Or handle if it's just a name. 
+                            let repoName = undefined;
+                            if (project.githubLink) {
+                                const parts = project.githubLink.split('/');
+                                repoName = parts[parts.length - 1];
+                            }
+                            openChatWithQuery(`Tell me more about the project "${project.title}"`, repoName);
                         }}
                         className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/50 hover:scale-105 border border-white/10 group/ask"
                     >

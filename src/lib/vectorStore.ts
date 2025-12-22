@@ -1,12 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.VECTOR_DB_URL;
-const supabaseKey = process.env.VECTOR_DB_KEY;
-
-const supabase = (supabaseUrl && supabaseKey)
-    ? createClient(supabaseUrl, supabaseKey)
-    : null;
+import clientPromise from '@/lib/mongodb';
 
 export interface Document {
     id?: string;
@@ -20,67 +12,128 @@ export interface Document {
     created_at?: string;
 }
 
+const DB_NAME = '3d_portfolio'; // Or whatever DB name they prefer, defaulting to this
+const COLLECTION_NAME = 'code_embeddings';
+
 /**
- * Upsert document chunks into Supabase
+ * Upsert document chunks into MongoDB
  */
 export async function upsertChunks(chunks: Document[]): Promise<{ error: any }> {
-    if (!supabase) {
-        return { error: 'Supabase client not initialized' };
-    }
-
     try {
-        const { error } = await supabase
-            .from('documents')
-            .upsert(chunks, { onConflict: 'repo,path,chunk_index' as any }); // Requires composite unique constraint
+        const client = await clientPromise;
+        const db = client.db(DB_NAME);
+        const collection = db.collection(COLLECTION_NAME);
 
-        if (error) {
-            console.error('Supabase upsert error:', error);
-            return { error };
+        // Batch upsert? MongoDB doesn't have a direct "upsert many" with unique keys easily in one go 
+        // without bulkWrite.
+        // We want to dedup based on (repo, path, chunk_index).
+
+        const operations = chunks.map(chunk => ({
+            updateOne: {
+                filter: {
+                    repo: chunk.repo,
+                    path: chunk.path,
+                    chunk_index: chunk.chunk_index
+                },
+                update: {
+                    $set: {
+                        content: chunk.content,
+                        embedding: chunk.embedding,
+                        url: chunk.url,
+                        type: chunk.type,
+                        updated_at: new Date()
+                    },
+                    $setOnInsert: { created_at: new Date() }
+                },
+                upsert: true
+            }
+        }));
+
+        if (operations.length > 0) {
+            await collection.bulkWrite(operations);
         }
+
         return { error: null };
     } catch (e) {
-        console.error('Unexpected error upserting chunks:', e);
+        console.error('MongoDB upsert error:', e);
         return { error: e };
     }
 }
 
 /**
- * Search for similar documents using pgvector
+ * Search for similar documents using MongoDB Vector Search
  */
 export async function searchSimilar(embedding: number[], topK: number = 5, filterRepo?: string) {
-    if (!supabase) return [];
-
     try {
-        // Calls the RPC function 'match_documents'
-        // SQL:
-        // create or replace function match_documents (
-        //   query_embedding vector(1536),
-        //   match_threshold float,
-        //   match_count int,
-        //   filter_repo text default null
-        // )
-        // ...
+        const client = await clientPromise;
+        const db = client.db(DB_NAME);
+        const collection = db.collection(COLLECTION_NAME);
 
-        const params: any = {
-            query_embedding: embedding,
-            match_threshold: 0.5, // minimum similarity
-            match_count: topK,
+        // Atlas Vector Search Aggregation
+        // Requires an index named "vector_index" (default) or specified
+        const pipeline: any[] = [
+            {
+                $vectorSearch: {
+                    index: "vector_index", // User must create this in Atlas
+                    path: "embedding",
+                    queryVector: embedding,
+                    numCandidates: topK * 10, // heuristic
+                    limit: topK
+                }
+            }
+        ];
+
+        // Optional filter
+        // Note: For $vectorSearch, pre-filtering is done inside the $vectorSearch stage using 'filter' 
+        // but simple $match after is also possible for small datasets, though less efficient.
+        // Atlas Search supports strict filtering inside.
+        if (filterRepo) {
+            pipeline[0].$vectorSearch.filter = {
+                repo: { $eq: filterRepo }
+            };
+        }
+
+        const projectStage = {
+            $project: {
+                _id: 0,
+                content: 1,
+                repo: 1,
+                path: 1,
+                url: 1,
+                type: 1,
+                score: { $meta: "vectorSearchScore" }
+            }
         };
 
-        if (filterRepo) {
-            params.filter_repo = filterRepo;
-        }
+        pipeline.push(projectStage);
 
-        const { data, error } = await supabase.rpc('match_documents', params);
+        const results = await collection.aggregate(pipeline).toArray();
+        return results;
 
-        if (error) {
-            console.error('Supabase search error:', error);
-            return [];
-        }
-
-        return data;
     } catch (e) {
-        console.error('Unexpected error searching chunks:', e);
+        console.error('MongoDB vector search error:', e);
         return [];
     }
 }
+
+/*
+ * INDEX CREATION INSTRUCTIONS (For User):
+ * 
+ * Navigate to MongoDB Atlas -> Database -> "3d_portfolio" -> "code_embeddings" -> Indexes -> Create Search Index
+ * Select "JSON Editor" and use this configuration:
+ * 
+ * {
+ *   "fields": [
+ *     {
+ *       "numDimensions": 1536,
+ *       "path": "embedding",
+ *       "similarity": "cosine",
+ *       "type": "vector"
+ *     },
+ *     {
+ *       "path": "repo",
+ *       "type": "filter"
+ *     }
+ *   ]
+ * }
+ */

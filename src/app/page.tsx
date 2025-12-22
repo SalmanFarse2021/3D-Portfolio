@@ -7,7 +7,6 @@ import Experience from '@/components/Experience';
 import ProjectGrid from '@/components/ProjectGrid';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import AIChatSidebar from '@/components/AIChatSidebar';
 
 export default function Home() {
     return (
@@ -29,7 +28,6 @@ export default function Home() {
             <Footer />
 
             {/* Global Interactive Components */}
-            <AIChatSidebar />
         </main>
     );
 }

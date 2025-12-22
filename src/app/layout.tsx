@@ -17,6 +17,8 @@ export const metadata: Metadata = {
 };
 
 import ScrollbarManager from '@/components/ScrollbarManager';
+import { ChatProvider } from '@/context/ChatContext';
+import PortfolioChatbot from '@/components/PortfolioChatbot';
 
 export default function RootLayout({
     children,
@@ -26,8 +28,11 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={inter.className}>
-                <ScrollbarManager />
-                {children}
+                <ChatProvider>
+                    <ScrollbarManager />
+                    {children}
+                    <PortfolioChatbot />
+                </ChatProvider>
             </body>
         </html>
     );

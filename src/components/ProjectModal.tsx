@@ -1,6 +1,7 @@
 import { Project } from '@/types/project';
 import Image from 'next/image';
 import { useEffect } from 'react';
+import { useChat } from '@/context/ChatContext';
 
 interface ProjectModalProps {
     project: Project;
@@ -8,6 +9,7 @@ interface ProjectModalProps {
 }
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+    const { openChatWithQuery } = useChat();
     // Close on escape key
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -88,8 +90,8 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${project.githubLink || project.link
-                                        ? 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 hover:border-gray-600 hover:shadow-lg'
-                                        : 'bg-gray-800/50 text-gray-500 border border-gray-800 cursor-not-allowed'
+                                    ? 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 hover:border-gray-600 hover:shadow-lg'
+                                    : 'bg-gray-800/50 text-gray-500 border border-gray-800 cursor-not-allowed'
                                     }`}
                                 onClick={(e) => !(project.githubLink || project.link) && e.preventDefault()}
                             >
@@ -104,8 +106,8 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${project.websiteLink
-                                        ? 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 hover:border-gray-600 hover:shadow-lg'
-                                        : 'bg-gray-800/50 text-gray-500 border border-gray-800 cursor-not-allowed'
+                                    ? 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 hover:border-gray-600 hover:shadow-lg'
+                                    : 'bg-gray-800/50 text-gray-500 border border-gray-800 cursor-not-allowed'
                                     }`}
                                 onClick={(e) => !project.websiteLink && e.preventDefault()}
                             >
@@ -117,13 +119,15 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
                             <button
                                 onClick={() => {
-                                    const event = new CustomEvent('open-ai-chat', {
-                                        detail: {
-                                            message: `Tell me more about the project "${project.title}". It's described as: ${project.description}. Technologies used: ${project.technologies.join(', ')}.`
-                                        }
-                                    });
-                                    window.dispatchEvent(event);
-                                    onClose(); // Close modal when asking AI? Maybe better to keep it open, but user might want to see chat. I'll close it for now or maybe just let chat open.
+                                    // Extract repo name
+                                    let repoName = undefined;
+                                    if (project.githubLink) {
+                                        const parts = project.githubLink.split('/');
+                                        repoName = parts[parts.length - 1];
+                                    }
+
+                                    openChatWithQuery(`Tell me more about the project "${project.title}"`, repoName);
+                                    onClose();
                                 }}
                                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/50 hover:scale-105 border border-white/10 ml-auto"
                             >
