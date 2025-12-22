@@ -309,8 +309,13 @@ export default function PortfolioChatbot() {
                                         <div className="prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800/50 prose-code:text-primary-300">
                                             <ReactMarkdown
                                                 components={{
-                                                    a: ({ node, ...props }) => <a className="text-primary-400 hover:underline underline-offset-2 decoration-primary-400/30" target="_blank" rel="noopener noreferrer" {...props} />,
-                                                    code: ({ node, ...props }) => <code className="bg-gray-900 px-1 py-0.5 rounded text-xs font-mono text-primary-300" {...props} />
+                                                    a: ({ node, ...props }) => <a className="text-cyan-400 hover:text-cyan-300 hover:underline underline-offset-2 decoration-cyan-400/30 transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
+                                                    code: ({ node, ...props }) => <code className="bg-gray-950/50 px-1.5 py-0.5 rounded text-xs font-mono text-yellow-300 border border-white/5" {...props} />,
+                                                    strong: ({ node, ...props }) => <strong className="font-bold text-violet-400" {...props} />,
+                                                    ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-4 my-2 space-y-1 marker:text-emerald-400" {...props} />,
+                                                    ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-4 my-2 space-y-1 marker:text-emerald-400" {...props} />,
+                                                    li: ({ node, ...props }) => <li className="pl-1 text-gray-200" {...props} />,
+                                                    p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />
                                                 }}
                                             >
                                                 {msg.content}
