@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFileContent } from '@/lib/github';
+
+export const maxDuration = 60; // Allow up to 60 seconds for code explanation
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
 import OpenAI from 'openai';
