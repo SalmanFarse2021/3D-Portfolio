@@ -157,56 +157,51 @@ export default function PortfolioChatbot() {
         }
     }, [input]);
 
-    // -- Drag Logic --
-    const handleMouseDown = (e: React.MouseEvent) => {
-        if (!chatWindowRef.current) return;
-        setIsDragging(true);
+    // Resizing State
+    const [size, setSize] = useState<{ width: number, height: number }>({ width: 400, height: 600 });
+    const [isResizing, setIsResizing] = useState(false);
+    const resizeRef = useRef<{ startX: number, startY: number, startWidth: number, startHeight: number }>({ startX: 0, startY: 0, startWidth: 0, startHeight: 0 });
 
-        // Calculate offset from the top-left of the window
-        const rect = chatWindowRef.current.getBoundingClientRect();
-        dragOffset.current = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+    const handleResizeMouseDown = (e: React.MouseEvent) => {
+        setIsResizing(true);
+        e.preventDefault();
+        e.stopPropagation(); // Prevent drag from triggering
+        resizeRef.current = {
+            startX: e.clientX,
+            startY: e.clientY,
+            startWidth: size.width,
+            startHeight: size.height
         };
     };
 
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isDragging) return;
-            e.preventDefault(); // Prevent text selection
+        const handleResizeMouseMove = (e: MouseEvent) => {
+            if (!isResizing) return;
+            e.preventDefault();
 
-            // Calculate new position
-            let newX = e.clientX - dragOffset.current.x;
-            let newY = e.clientY - dragOffset.current.y;
+            const deltaX = e.clientX - resizeRef.current.startX;
+            const deltaY = e.clientY - resizeRef.current.startY;
 
-            // Boundary checks (keep roughly on screen)
-            const winW = window.innerWidth;
-            const winH = window.innerHeight;
-            const chatW = chatWindowRef.current?.offsetWidth || 400;
-            const chatH = chatWindowRef.current?.offsetHeight || 600;
-
-            if (newX < 0) newX = 0;
-            if (newY < 0) newY = 0;
-            if (newX + chatW > winW) newX = winW - chatW;
-            if (newY + chatH > winH) newY = winH - chatH;
-
-            setPosition({ x: newX, y: newY });
+            setSize({
+                width: Math.max(320, Math.min(800, resizeRef.current.startWidth + deltaX)),
+                height: Math.max(400, Math.min(800, resizeRef.current.startHeight + deltaY))
+            });
         };
 
-        const handleMouseUp = () => {
-            setIsDragging(false);
+        const handleResizeMouseUp = () => {
+            setIsResizing(false);
         };
 
-        if (isDragging) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
+        if (isResizing) {
+            document.addEventListener('mousemove', handleResizeMouseMove);
+            document.addEventListener('mouseup', handleResizeMouseUp);
         }
 
         return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('mousemove', handleResizeMouseMove);
+            document.removeEventListener('mouseup', handleResizeMouseUp);
         };
-    }, [isDragging]);
+    }, [isResizing]);
 
 
     return (
@@ -232,19 +227,32 @@ export default function PortfolioChatbot() {
             {/* Chat Window */}
             <div
                 ref={chatWindowRef}
-                style={position ? {
-                    left: `${position.x}px`,
-                    top: `${position.y}px`,
-                    transform: 'none',
-                    bottom: 'auto',
-                    right: 'auto'
-                } : {}}
+                style={{
+                    ...(position ? {
+                        left: `${position.x}px`,
+                        top: `${position.y}px`,
+                        transform: 'none',
+                        bottom: 'auto',
+                        right: 'auto'
+                    } : {}),
+                    width: `${size.width}px`,
+                    height: `${size.height}px`
+                }}
                 className={`fixed z-50 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${isOpen
                     ? 'opacity-100'
                     : 'opacity-0 pointer-events-none translate-y-8'
                     } ${!position ? 'bottom-6 right-4' : ''}`}
             >
-                <div className="bg-gray-950/95 w-[90vw] md:w-[400px] rounded-2xl shadow-2xl border border-gray-700/50 flex flex-col h-[600px] max-h-[80vh] overflow-hidden backdrop-blur-xl">
+                <div className="bg-gray-950/95 w-full h-full rounded-2xl shadow-2xl border border-gray-700/50 flex flex-col overflow-hidden backdrop-blur-xl relative">
+                    {/* Resize Handle */}
+                    <div
+                        onMouseDown={handleResizeMouseDown}
+                        className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50 flex items-end justify-end p-1 hover:bg-white/10 rounded-br-2xl transition-colors"
+                    >
+                        <svg className="w-4 h-4 text-gray-500 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </div>
 
                     {/* Header (Draggable) */}
                     <div
