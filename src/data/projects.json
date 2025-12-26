@@ -1,30 +1,5 @@
 [
     {
-        "id": "researcher-x",
-        "title": "ResearcherX - Agentic Web Researcher",
-        "description": "AI Research Agent is an autonomous AI system that conducts web research, analyzes multiple sources, and generates structured research reports from a single prompt using agent-based workflows.",
-        "technologies": [
-            "Python",
-            "LangChain",
-            "OpenAI GPT-4",
-            "Selenium",
-            "FastAPI",
-            "React"
-        ],
-        "image": "/projects/ResearcherX.png",
-        "images": [
-            "/projects/ResearcherX.png",
-            "/projects/ResearcherX3.webp",
-            "/projects/ResearcherX4.jpg"
-        ],
-        "githubLink": "https://github.com/SalmanFarse2021/ResearcherX.git",
-        "position": [
-            0,
-            0,
-            0
-        ]
-    },
-    {
         "id": "doctor-ai",
         "title": "Doctor.ai - A next Gen AI Doctor.",
         "description": "Doctor.ai is an intelligent diagnostic assistant that leverages AI to analyze patient symptoms and lab data, delivering instant disease predictions with precise probability scores. Beyond diagnosis, it generates comprehensive, curative health plans—covering nutrition, lifestyle, and medication—to actively accelerate user recovery. Built with Next.js and FastAPI, the platform ensures a seamless, responsive experience for accessible personal health management.",
@@ -86,6 +61,31 @@
         "image": "/projects/HK_Signature.png",
         "githubLink": "https://github.com/SalmanFarse2021/HK-Signature.git",
         "websiteLink": "https://hk-signature.vercel.app/",
+        "position": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "id": "researcher-x",
+        "title": "ResearcherX - Agentic Web Researcher",
+        "description": "AI Research Agent is an autonomous AI system that conducts web research, analyzes multiple sources, and generates structured research reports from a single prompt using agent-based workflows.",
+        "technologies": [
+            "Python",
+            "LangChain",
+            "OpenAI GPT-4",
+            "Selenium",
+            "FastAPI",
+            "React"
+        ],
+        "image": "/projects/ResearcherX.png",
+        "images": [
+            "/projects/ResearcherX.png",
+            "/projects/ResearcherX3.webp",
+            "/projects/ResearcherX4.jpg"
+        ],
+        "githubLink": "https://github.com/SalmanFarse2021/ResearcherX.git",
         "position": [
             0,
             0,
