@@ -20,7 +20,7 @@ export default function AIChat() {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
-            content: "Hi! I'm your Portfolio Assistant. Ask me anything about the code and projects!",
+            content: "Hi! I'm an AI assistant powered by RAG. Ask me anything about the code and projects in this portfolio!",
         },
     ]);
     const [input, setInput] = useState('');
@@ -74,7 +74,7 @@ export default function AIChat() {
         if (confirm('Are you sure you want to clear the conversation history?')) {
             const initialMessage: Message[] = [{
                 role: 'assistant',
-                content: "Hi! I'm your Portfolio Assistant. Ask me anything about the code and projects!",
+                content: "Hi! I'm an AI assistant powered by RAG. Ask me anything about the code and projects in this portfolio!",
             }];
             setMessages(initialMessage);
             localStorage.removeItem('chatHistory');
@@ -240,7 +240,7 @@ export default function AIChat() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs text-white/80">
-                                        {explainMode ? 'Explain Code Mode' : 'Portfolio Assistant'}
+                                        {explainMode ? 'Explain Code Mode' : 'Powered by OpenAI RAG'}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
