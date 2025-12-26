@@ -24,6 +24,13 @@ const PROJECT_KEYWORDS = projects.map(p => ({
     keywords: [p.title.toLowerCase(), ...(p.technologies || []).map(t => t.toLowerCase())]
 }));
 
+// Add distinct entry for the Portfolio itself
+PROJECT_KEYWORDS.push({
+    title: 'portfolio',
+    repo: '3D-Portfolio', // Or whatever strict repo name you want
+    keywords: ['portfolio', 'this website', 'this app', 'this site']
+});
+
 export async function resolveProjectContext(sessionId: string, message: string): Promise<{ activeRepo: string | null; isAmbiguous: boolean }> {
     const msg = message.toLowerCase();
 
