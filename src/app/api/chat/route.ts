@@ -92,12 +92,13 @@ async function handleFunctionCall(functionName: string, args: any): Promise<stri
             const { owner, repo, path } = args;
             const content = await getFileContent(owner, repo, path);
             if (!content) return `Unable to read file ${path} from ${owner}/${repo}. File may not exist.`;
-            return `File: ${owner}/${repo}/${path}\n\n${content}`;
+            return `File: ${owner}/${repo}/${path}\n\n${content.slice(0, 10000)}${content.length > 10000 ? '\n...(TRUNCATED)' : ''}`;
         } else if (functionName === "get_repo_structure") {
             const { owner, repo, branch = "main" } = args;
             const files = await getRepoTree(owner, repo, branch);
             if (!files || files.length === 0) return `Unable to fetch repository structure for ${owner}/${repo}.`;
-            return `Repository structure for ${owner}/${repo}:\n\n${files.join('\n')}`;
+            const fileList = files.join('\n');
+            return `Repository structure for ${owner}/${repo}:\n\n${fileList.slice(0, 10000)}${fileList.length > 10000 ? '\n...(TRUNCATED)' : ''}`;
         } else if (functionName === "read_website") {
             const { url } = args;
             try {
@@ -141,6 +142,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'AI service not configured.' }, { status: 500 });
     }
 
+    let ragContext: string | null = null;
+    let baseSystemPrompt = "";
+    let apiMessages: any[] = [];
+    let conversationId = "unknown";
+    const TOP_K = parseInt(process.env.TOP_K || '3', 10);
+
     try {
         const body = await request.json();
         const schema = z.object({
@@ -156,9 +163,9 @@ export async function POST(request: NextRequest) {
         }
 
         const { message: userQuery, conversationId: reqConvId, repoFilter, mode = 'general' } = validation.data;
-        const conversationId = reqConvId || uuidv4();
+        conversationId = reqConvId || uuidv4();
         const start = Date.now();
-        const TOP_K = parseInt(process.env.TOP_K || '10', 10);
+        // const TOP_K moved up
 
         logger.info('Chat Request Received', { conversationId, mode, repoFilter });
 
@@ -187,7 +194,7 @@ export async function POST(request: NextRequest) {
         });
 
         // 4. Construct Prompt
-        const ragContext = contextChunks.length > 0 ? contextChunks.map(doc => `
+        ragContext = contextChunks.length > 0 ? contextChunks.map(doc => `
 ---
 File: ${doc.repo}/${doc.path}
 URL: ${doc.url}
@@ -198,7 +205,7 @@ ${doc.content}
 
         const githubData = await fetchGitHubData();
         // Update: Pass activeRepo to buildPrompt
-        const baseSystemPrompt = buildPrompt(
+        baseSystemPrompt = buildPrompt(
             projects,
             userQuery,
             githubData,
@@ -207,7 +214,7 @@ ${doc.content}
         );
 
         // 5. Build Messages (Step 4)
-        const apiMessages = await buildMessages(
+        apiMessages = await buildMessages(
             conversationId,
             baseSystemPrompt,
             ragContext
@@ -291,7 +298,16 @@ ${doc.content}
         });
 
     } catch (error: any) {
-        logger.error('Chat API error:', error);
-        return new NextResponse('An error occurred.', { status: 500 });
+        const debugInfo = {
+            ragSize: ragContext ? ragContext.length : 0,
+            systemPromptSize: baseSystemPrompt.length,
+            historySize: JSON.stringify(apiMessages).length,
+            messagesCount: apiMessages.length,
+            topK: TOP_K,
+            conversationId,
+            messageRoles: apiMessages.map(m => m.role)
+        };
+        logger.error('Chat API error:', { error, debugInfo });
+        return new NextResponse(`An error occurred: ${error.message}\nDebug: ${JSON.stringify(debugInfo, null, 2)}\n${error.stack}`, { status: 500 });
     }
 }

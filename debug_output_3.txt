@@ -1,0 +1,60 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* Host localhost:3001 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying [::1]:3001...
+* Connected to localhost (::1) port 3001
+> POST /api/chat HTTP/1.1
+> Host: localhost:3001
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 63
+> 
+} [63 bytes data]
+* upload completely sent off: 63 bytes
+100    63    0     0  100    63      0     52  0:00:01  0:00:01 --:--:--    52100    63    0     0  100    63      0     28  0:00:02  0:00:02 --:--:--    28100    63    0     0  100    63      0     19  0:00:03  0:00:03 --:--:--    19100    63    0     0  100    63      0     14  0:00:04  0:00:04 --:--:--    14100    63    0     0  100    63      0     12  0:00:05  0:00:05 --:--:--    12< HTTP/1.1 500 Internal Server Error
+< vary: RSC, Next-Router-State-Tree, Next-Router-Prefetch
+< content-type: text/plain;charset=UTF-8
+< Date: Fri, 26 Dec 2025 08:55:35 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< Transfer-Encoding: chunked
+< 
+{ [4248 bytes data]
+An error occurred: 429 Request too large for gpt-4o in organization org-UkJX9z3I4L2PXilezF5OqqvR on tokens per min (TPM): Limit 30000, Requested 55438. The input or output tokens must be reduced in order to run successfully. Visit https://platform.openai.com/account/rate-limits to learn more.
+Debug: {
+  "ragSize": 0,
+  "systemPromptSize": 5444,
+  "historySize": 226861,
+  "messagesCount": 6,
+  "topK": 3
+}
+Error: 429 Request too large for gpt-4o in organization org-UkJX9z3I4L2PXilezF5OqqvR on tokens per min (TPM): Limit 30000, Requested 55438. The input or output tokens must be reduced in order to run successfully. Visit https://platform.openai.com/account/rate-limits to learn more.
+    at APIError.generate (webpack-internal:///(rsc)/./node_modules/openai/core/error.mjs:79:20)
+    at OpenAI.makeStatusError (webpack-internal:///(rsc)/./node_modules/openai/client.mjs:205:71)
+    at OpenAI.makeRequest (webpack-internal:///(rsc)/./node_modules/openai/client.mjs:373:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async POST (webpack-internal:///(rsc)/./src/app/api/chat/route.ts:243:32)
+    at async /Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:1353:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:1575:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:1483:28)
+    at async DevServer.renderPageComponent (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:1911:24)
+    at async DevServer.renderToResponseImpl (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:1949:32)
+    at async DevServer.pipeImpl (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListen100  4298    0  4235  100    63    713     10  0:00:06  0:00:05  0:00:01   895
+* Connection #0 to host localhost left intact
+er (/Users/mdsalmanfarse/Documents/Files/My Projects/Completed Projects/Portfolio/node_modules/next/dist/server/lib/start-server.js:141:13)

@@ -53,6 +53,11 @@ class MemoryStore {
             this.sessions.set(sessionId, session);
         }
 
+        // Truncate content to prevent massive context build-up
+        if (content && content.length > 20000) {
+            content = content.slice(0, 20000) + '...[TRUNCATED]';
+        }
+
         const message: ChatMessage = {
             role,
             content,

@@ -41,7 +41,7 @@ Project ${index + 1}: ${project.title} ${isActive ? '(ACTIVE CONTEXT)' : ''}
 
     let githubContext = "GitHub Stats not available.";
     if (githubData) {
-        const repoList = githubData.repositories.map(repo =>
+        const repoList = githubData.repositories.slice(0, 10).map(repo =>
             `- ${repo.name} (${repo.language || 'Code'}): ${repo.description || 'No desc'} [${repo.stargazers_count}★]`
         ).join('\n');
 
