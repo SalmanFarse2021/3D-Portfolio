@@ -141,6 +141,18 @@ export default function PortfolioChatbot() {
         }
     };
 
+    const handleClose = () => {
+        setIsOpen(false);
+        // Reset state
+        setMessages([
+            { role: 'ai', content: "Hi! I'm Salman's AI assistant. Ask me anything about his projects, skills, or experience!" }
+        ]);
+        // Clear history and session
+        localStorage.removeItem('chatHistory');
+        localStorage.removeItem('chatSessionId');
+        setConversationId(null);
+    };
+
     const handleCancel = () => {
         setMessages([
             { role: 'ai', content: "Hi! I'm Salman's AI assistant. Ask me anything about his projects, skills, or experience!" }
@@ -465,7 +477,7 @@ export default function PortfolioChatbot() {
                         </div>
                         <div className="flex items-center gap-1" onMouseDown={e => e.stopPropagation()}>
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleClose}
                                 className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-full"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -473,7 +485,7 @@ export default function PortfolioChatbot() {
                                 </svg>
                             </button>
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleClose}
                                 className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-full"
                                 title="Close Chat"
                             >
