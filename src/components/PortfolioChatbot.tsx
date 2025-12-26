@@ -261,6 +261,14 @@ export default function PortfolioChatbot() {
     const [size, setSize] = useState<{ width: number, height: number }>({ width: 400, height: 600 });
     const resizeDirRef = useRef<string | null>(null);
     const sizeRef = useRef<{ width: number, height: number }>({ width: 400, height: 600 }); // track latest size for rAF updates
+    const resizeRef = useRef<{
+        startX: number,
+        startY: number,
+        startWidth: number,
+        startHeight: number,
+        startLeft: number,
+        startTop: number
+    }>({ startX: 0, startY: 0, startWidth: 0, startHeight: 0, startLeft: 0, startTop: 0 });
 
     // Sync ref
     useEffect(() => {
