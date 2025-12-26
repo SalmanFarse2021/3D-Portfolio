@@ -425,7 +425,7 @@ export default function PortfolioChatbot() {
                     width: `${size.width}px`,
                     height: `${size.height}px`
                 }}
-                className={`fixed z-50 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${isOpen
+                className={`fixed z-50 transition-[opacity,transform] duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${isOpen
                     ? 'opacity-100'
                     : 'opacity-0 pointer-events-none translate-y-8'
                     } ${!position ? 'bottom-6 right-4' : ''}`}
