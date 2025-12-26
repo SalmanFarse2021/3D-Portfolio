@@ -362,15 +362,22 @@ export default function PortfolioChatbot() {
                     } ${!position ? 'bottom-6 right-4' : ''}`}
             >
                 <div className="bg-gray-950/95 w-full h-full rounded-2xl shadow-2xl border border-gray-700/50 flex flex-col overflow-hidden backdrop-blur-xl relative">
-                    {/* Resize Handle */}
-                    <div
-                        onMouseDown={handleResizeMouseDown}
-                        className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50 flex items-end justify-end p-1 hover:bg-white/10 rounded-br-2xl transition-colors"
-                    >
-                        <svg className="w-4 h-4 text-gray-500 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {/* Resize Handles */}
+                    {/* Corners */}
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize z-50 rounded-tl-2xl"></div>
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize z-50 rounded-tr-2xl"></div>
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize z-50 rounded-bl-2xl"></div>
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50 flex items-end justify-end p-1 hover:bg-white/10 rounded-br-2xl transition-colors">
+                        <svg className="w-3 h-3 text-gray-600 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </div>
+
+                    {/* Edges */}
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'n')} className="absolute top-0 left-4 right-4 h-2 cursor-n-resize z-40"></div>
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 's')} className="absolute bottom-0 left-4 right-4 h-2 cursor-s-resize z-40"></div>
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'w')} className="absolute top-4 bottom-4 left-0 w-2 cursor-w-resize z-40"></div>
+                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'e')} className="absolute top-4 bottom-4 right-0 w-2 cursor-e-resize z-40"></div>
 
                     {/* Header (Draggable) */}
                     <div
