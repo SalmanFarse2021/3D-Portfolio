@@ -23,6 +23,14 @@ export default function PortfolioChatbot() {
     const [conversationId, setConversationId] = useState<string | null>(null);
     const [mode, setMode] = useState<'general' | 'recruiter' | 'tech'>('general');
     const [activeRepoFilter, setActiveRepoFilter] = useState<string | undefined>(undefined);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Dragging State
     const [position, setPosition] = useState<{ x: number, y: number } | null>(null);
@@ -424,41 +432,65 @@ export default function PortfolioChatbot() {
             )}
 
             {/* Chat Window */}
+            {/* Chat Window */}
             <div
                 ref={chatWindowRef}
                 style={{
-                    ...(position ? {
-                        left: `${position.x}px`,
-                        top: `${position.y}px`,
-                        transform: 'none',
-                        bottom: 'auto',
-                        right: 'auto'
-                    } : {}),
-                    width: `${size.width}px`,
-                    height: `${size.height}px`
+                    // Only apply custom position/size on non-mobile (md breakpoint ~768px)
+                    // We'll handle this via a media query check or CSS variables, but inline styles override classes.
+                    // Best approach: Use a CSS class for mobile overrides that uses !important, or conditionally apply style.
+                    // For simplicity in this specialized drag component, we'll check window width in effect or just rely on CSS @media queries overriding if possible.
+                    // Since inline styles have high specificity, we will wrap them in a conditional or clear them on mobile.
+                    // Actually, let's use a media query hook or just CSS classes with !important for mobile to override these inline styles.
+                    // Or better: cleaner React way ->
                 }}
-                className={`fixed z-50 transition-[opacity,transform] duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${isOpen
-                    ? 'opacity-100'
-                    : 'opacity-0 pointer-events-none translate-y-8'
-                    } ${!position ? 'bottom-6 right-4' : ''}`}
+                className={`fixed z-50 transition-[opacity,transform] duration-500 cubic-bezier(0.16, 1, 0.3, 1) 
+                    ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none translate-y-8'}
+                    
+                    /* Mobile Styles (Default) */
+                    inset-x-0 bottom-0 w-full h-[85vh] rounded-t-2xl md:rounded-2xl
+                    
+                    /* Desktop Styles (md:...) - we need to unset the mobile defaults and let inline styles take over, 
+                       but inline styles are always present. 
+                       SO: We will modify the style attribute to be empty on mobile. */
+                `}
             >
-                <div className="bg-gray-950/95 w-full h-full rounded-2xl shadow-2xl border border-gray-700/50 flex flex-col overflow-hidden backdrop-blur-xl relative">
-                    {/* Resize Handles */}
-                    {/* Corners */}
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize z-50 rounded-tl-2xl"></div>
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize z-50 rounded-tr-2xl"></div>
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize z-50 rounded-bl-2xl"></div>
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50 flex items-end justify-end p-1 hover:bg-white/10 rounded-br-2xl transition-colors">
-                        <svg className="w-3 h-3 text-gray-600 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                    </div>
+                {/* We need to use a resize listener to disable custom inline styles on mobile */}
+                <style jsx>{`
+                    @media (max-width: 768px) {
+                        div[ref="chatWindowRef"] {
+                            width: 100% !important;
+                            height: 85vh !important;
+                            left: 0 !important;
+                            top: auto !important;
+                            bottom: 0 !important;
+                            right: 0 !important;
+                            transform: none !important;
+                        }
+                    }
+                `}</style>
+                <div
+                    className="bg-gray-950/95 w-full h-full md:rounded-2xl rounded-t-2xl shadow-2xl border border-gray-700/50 flex flex-col overflow-hidden backdrop-blur-xl relative"
+                // Mobile: Remove borders/radius that look bad full screen
+                >
+                    {/* Resize Handles - Hide on Mobile */}
+                    <div className="hidden md:block">
+                        {/* Corners */}
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize z-50 rounded-tl-2xl"></div>
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize z-50 rounded-tr-2xl"></div>
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize z-50 rounded-bl-2xl"></div>
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50 flex items-end justify-end p-1 hover:bg-white/10 rounded-br-2xl transition-colors">
+                            <svg className="w-3 h-3 text-gray-600 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </div>
 
-                    {/* Edges */}
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'n')} className="absolute top-0 left-4 right-4 h-2 cursor-n-resize z-40"></div>
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 's')} className="absolute bottom-0 left-4 right-4 h-2 cursor-s-resize z-40"></div>
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'w')} className="absolute top-4 bottom-4 left-0 w-2 cursor-w-resize z-40"></div>
-                    <div onMouseDown={(e) => handleResizeMouseDown(e, 'e')} className="absolute top-4 bottom-4 right-0 w-2 cursor-e-resize z-40"></div>
+                        {/* Edges */}
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'n')} className="absolute top-0 left-4 right-4 h-2 cursor-n-resize z-40"></div>
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 's')} className="absolute bottom-0 left-4 right-4 h-2 cursor-s-resize z-40"></div>
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'w')} className="absolute top-4 bottom-4 left-0 w-2 cursor-w-resize z-40"></div>
+                        <div onMouseDown={(e) => handleResizeMouseDown(e, 'e')} className="absolute top-4 bottom-4 right-0 w-2 cursor-e-resize z-40"></div>
+                    </div>
 
                     {/* Header (Draggable) */}
                     <div
