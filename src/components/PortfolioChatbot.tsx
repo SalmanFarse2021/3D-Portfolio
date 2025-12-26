@@ -157,6 +157,61 @@ export default function PortfolioChatbot() {
         }
     }, [input]);
 
+    // -- Drag Logic --
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (!chatWindowRef.current) return;
+
+        // Don't start dragging if clicking on a button or resize handle
+        if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('.cursor-se-resize')) return;
+
+        setIsDragging(true);
+
+        // Calculate offset from the top-left of the window
+        const rect = chatWindowRef.current.getBoundingClientRect();
+        dragOffset.current = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDragging) return;
+            e.preventDefault(); // Prevent text selection
+
+            // Calculate new position
+            let newX = e.clientX - dragOffset.current.x;
+            let newY = e.clientY - dragOffset.current.y;
+
+            // Boundary checks (keep roughly on screen)
+            const winW = window.innerWidth;
+            const winH = window.innerHeight;
+            const chatW = chatWindowRef.current?.offsetWidth || 400;
+            const chatH = chatWindowRef.current?.offsetHeight || 600;
+
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX + chatW > winW) newX = winW - chatW;
+            if (newY + chatH > winH) newY = winH - chatH;
+
+            setPosition({ x: newX, y: newY });
+        };
+
+        const handleMouseUp = () => {
+            setIsDragging(false);
+        };
+
+        if (isDragging) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging]);
+
     // Resizing State
     const [size, setSize] = useState<{ width: number, height: number }>({ width: 400, height: 600 });
     const [isResizing, setIsResizing] = useState(false);
