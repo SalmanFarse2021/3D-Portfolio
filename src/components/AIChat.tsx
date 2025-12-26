@@ -193,6 +193,18 @@ export default function AIChat() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isResizing]);
 
+    const handleClose = () => {
+        setIsOpen(false);
+        // Reset state
+        setMessages([{
+            role: 'assistant',
+            content: "Hi! I'm your Portfolio Assistant. Ask me anything about the code and projects!",
+        }]);
+        // Clear history and session
+        localStorage.removeItem('chatHistory');
+        localStorage.removeItem('chatSessionId');
+    };
+
     return (
         <>
             {/* Chat Button */}
@@ -236,9 +248,9 @@ export default function AIChat() {
                                 </div>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={handleClose}
                                         className="px-2 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
-                                        title="Close chat"
+                                        title="Close and Reset Chat"
                                     >
                                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
