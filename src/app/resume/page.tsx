@@ -72,7 +72,54 @@ export default function ResumePage() {
             <Navigation />
 
             <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-                {/* Header */}
+                {/* Inputs Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24 animate-fade-in">
+                    {/* Box 1: Your Resume */}
+                    <div className="glass-effect rounded-2xl p-8 border border-white/10 relative group overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span className="text-primary-400">1.</span> Your Resume (PDF)
+                        </h3>
+                        <div className="border-2 border-dashed border-gray-700 group-hover:border-primary-500/50 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors bg-gray-900/20">
+                            <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                <span className="text-2xl">📄</span>
+                            </div>
+                            <p className="text-white font-medium mb-1">Upload a file</p>
+                            <p className="text-gray-500 text-sm mb-4">No file chosen</p>
+                            <p className="text-xs text-gray-500 font-mono">PDF, DOCX up to 5MB</p>
+                        </div>
+                    </div>
+
+                    {/* Box 2: Target Role */}
+                    <div className="glass-effect rounded-2xl p-8 border border-white/10 relative group overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-accent-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span className="text-accent-400">2.</span> Target Role <span className="text-gray-500 text-sm font-normal ml-auto">(Optional)</span>
+                        </h3>
+                        <textarea
+                            className="w-full h-[180px] bg-gray-900/20 border border-gray-700 rounded-xl p-4 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-accent-500/50 resize-none transition-colors text-sm"
+                            placeholder="Paste job description here..."
+                        />
+                    </div>
+                </div>
+
+                {/* Feature Highlights - Pushed Down */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
+                    {[
+                        { icon: "🧠", title: "Semantic Analysis", desc: "Beyond keywords. We understand impact & seniority." },
+                        { icon: "🎯", title: "ATS Simulation", desc: "Real-time scoring against modern tracking systems." },
+                        { icon: "🔍", title: "Gap Detection", desc: "Paste a JD to see exactly what you're missing." },
+                        { icon: "✨", title: "AI Rewriter", desc: "One-click polish or targeted tailoring." }
+                    ].map((feature, idx) => (
+                        <div key={idx} className="glass-effect p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                            <div className="text-3xl mb-4">{feature.icon}</div>
+                            <h4 className="text-lg font-bold text-white mb-2">{feature.title}</h4>
+                            <p className="text-sm text-gray-400 leading-relaxed">{feature.desc}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Header (Original Resume Content) */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 animate-fade-in border-b border-gray-800 pb-8">
                     <div>
                         <h1 className="text-4xl md:text-5xl font-bold mb-2">
