@@ -1,6 +1,6 @@
 import { Project } from '@/types/project';
 import Image from 'next/image';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useChat } from '@/context/ChatContext';
 
 interface ProjectModalProps {
@@ -10,6 +10,31 @@ interface ProjectModalProps {
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     const { openChatWithQuery } = useChat();
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    // Use images array if available, otherwise fallback to single image
+    const displayImages = project.images && project.images.length > 0
+        ? project.images
+        : (project.image ? [project.image] : []);
+
+    // Reset index when project changes
+    useEffect(() => {
+        setCurrentIndex(0);
+    }, [project]);
+
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (displayImages.length > 0) {
+            setCurrentIndex((prev) => (prev + 1) % displayImages.length);
+        }
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (displayImages.length > 0) {
+            setCurrentIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
+        }
+    };
     // Close on escape key
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -35,14 +60,53 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             />
             <div className="relative w-full max-w-4xl bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in border border-gray-800">
                 {/* Header Image */}
-                <div className="relative h-64 sm:h-80 w-full shrink-0">
-                    {project.image ? (
-                        <Image
-                            src={project.image}
-                            alt={project.title}
-                            fill
-                            className="object-cover"
-                        />
+                <div className="relative h-64 sm:h-80 w-full shrink-0 group/image">
+                    {displayImages.length > 0 ? (
+                        <>
+                            <Image
+                                key={displayImages[currentIndex]}
+                                src={displayImages[currentIndex]}
+                                alt={project.title}
+                                fill
+                                className="object-cover transition-opacity duration-300"
+                            />
+
+                            {/* Navigation Buttons (Only if multiple images) */}
+                            {displayImages.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={prevImage}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-md opacity-0 group-hover/image:opacity-100 transition-all hover:scale-110 z-10"
+                                        title="Previous Image"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={nextImage}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-md opacity-0 group-hover/image:opacity-100 transition-all hover:scale-110 z-10"
+                                        title="Next Image"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+
+                                    {/* Dots Indicator */}
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                                        {displayImages.map((_, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
+                                                className={`w-2 h-2 rounded-full transition-all ${currentIndex === idx ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </>
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-500">
                             <svg className="h-20 w-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +118,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-md z-10 group"
+                        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-md z-20 group"
                         title="Minimize/Close"
                     >
                         <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
