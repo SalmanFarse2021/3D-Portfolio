@@ -132,16 +132,14 @@ export default function Hero() {
                         </a>
 
                         <a
-                            href="/resume.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href="/resume"
                             className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white/5 px-8 py-3 font-bold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:scale-105 hover:shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] border border-white/10 hover:border-white/30"
                         >
                             <span className="absolute inset-0 bg-gradient-to-r from-primary-600/20 to-accent-600/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                             <span className="relative z-10 flex items-center gap-2">
                                 Resume
                                 <svg className="w-5 h-5 transition-transform group-hover:translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                                 </svg>
                             </span>
                         </a>
