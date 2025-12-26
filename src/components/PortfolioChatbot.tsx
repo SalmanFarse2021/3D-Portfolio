@@ -258,7 +258,7 @@ export default function PortfolioChatbot() {
                             </div>
                             <div>
                                 <h3 className="font-semibold text-white text-sm tracking-wide">Salman&apos;s Assistant</h3>
-                                <p className="text-[10px] text-gray-400 font-medium">Powered by GPT-4o & RAG</p>
+
                             </div>
                         </div>
                         <div className="flex items-center gap-1" onMouseDown={e => e.stopPropagation()}>
@@ -271,12 +271,12 @@ export default function PortfolioChatbot() {
                                 </svg>
                             </button>
                             <button
-                                onClick={handleCancel}
-                                className="p-2 text-gray-400 hover:text-red-400 transition-colors hover:bg-red-500/10 rounded-full"
-                                title="Reset Chat"
+                                onClick={() => setIsOpen(false)}
+                                className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-full"
+                                title="Close Chat"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
