@@ -157,12 +157,24 @@ export default function PortfolioChatbot() {
         }
     }, [input]);
 
-    // -- Drag Logic --
+    // -- Drag Logic (Optimized with requestAnimationFrame) --
+    const isDraggingRef = useRef(false);
+    const animationFrameId = useRef<number>();
+
+    // Store latest values in refs to avoid closure staleness in event listeners
+    const positionRef = useRef<{ x: number, y: number } | null>(null);
+
+    // Initialize positionRef from state or defaults
+    useEffect(() => {
+        if (position) positionRef.current = position;
+    }, [position]);
+
     const handleMouseDown = (e: React.MouseEvent) => {
         if (!chatWindowRef.current) return;
 
         // Don't start dragging if clicking on a button or resize handle
         if ((e.target as HTMLElement).closest('button') ||
+            (e.target as HTMLElement).closest('textarea') ||
             (e.target as HTMLElement).closest('.cursor-nw-resize') ||
             (e.target as HTMLElement).closest('.cursor-ne-resize') ||
             (e.target as HTMLElement).closest('.cursor-sw-resize') ||
@@ -173,26 +185,31 @@ export default function PortfolioChatbot() {
             (e.target as HTMLElement).closest('.cursor-w-resize')
         ) return;
 
-        setIsDragging(true);
+        isDraggingRef.current = true;
+        setIsDragging(true); // Just for cursor style if needed, or remove to avoid re-render
 
-        // Calculate offset from the top-left of the window
         const rect = chatWindowRef.current.getBoundingClientRect();
         dragOffset.current = {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top
         };
+
+        // If position is null (default bottom-right), set initial position explicitly
+        if (!positionRef.current) {
+            positionRef.current = { x: rect.left, y: rect.top };
+        }
     };
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            if (!isDragging) return;
-            e.preventDefault(); // Prevent text selection
+            if (!isDraggingRef.current) return;
+            e.preventDefault();
 
-            // Calculate new position
+            // Calculate target position
             let newX = e.clientX - dragOffset.current.x;
             let newY = e.clientY - dragOffset.current.y;
 
-            // Boundary checks (keep roughly on screen)
+            // Boundary checks
             const winW = window.innerWidth;
             const winH = window.innerHeight;
             const chatW = chatWindowRef.current?.offsetWidth || 400;
@@ -203,122 +220,166 @@ export default function PortfolioChatbot() {
             if (newX + chatW > winW) newX = winW - chatW;
             if (newY + chatH > winH) newY = winH - chatH;
 
-            setPosition({ x: newX, y: newY });
+            // Direct DOM update via rAF
+            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+
+            animationFrameId.current = requestAnimationFrame(() => {
+                if (chatWindowRef.current) {
+                    chatWindowRef.current.style.left = `${newX}px`;
+                    chatWindowRef.current.style.top = `${newY}px`;
+                    chatWindowRef.current.style.bottom = 'auto'; // ensure overrides
+                    chatWindowRef.current.style.right = 'auto';
+                }
+            });
+
+            // Update ref for next calculation if needed, but here we just need e.client
+            positionRef.current = { x: newX, y: newY };
         };
 
         const handleMouseUp = () => {
-            setIsDragging(false);
+            if (isDraggingRef.current) {
+                isDraggingRef.current = false;
+                setIsDragging(false);
+                if (positionRef.current) {
+                    setPosition(positionRef.current); // Sync state at end
+                }
+                if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+            }
         };
 
-        if (isDragging) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-        }
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
 
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
+            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
         };
-    }, [isDragging]);
+    }, []);
 
     // Resizing State
     const [size, setSize] = useState<{ width: number, height: number }>({ width: 400, height: 600 });
-    const [resizeDir, setResizeDir] = useState<string | null>(null);
-    const resizeRef = useRef<{
-        startX: number,
-        startY: number,
-        startWidth: number,
-        startHeight: number,
-        startLeft: number,
-        startTop: number
-    }>({ startX: 0, startY: 0, startWidth: 0, startHeight: 0, startLeft: 0, startTop: 0 });
+    const resizeDirRef = useRef<string | null>(null);
+    const sizeRef = useRef<{ width: number, height: number }>({ width: 400, height: 600 }); // track latest size for rAF updates
+
+    // Sync ref
+    useEffect(() => {
+        sizeRef.current = size;
+    }, [size]);
 
     const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
-        setResizeDir(direction);
+        resizeDirRef.current = direction;
         e.preventDefault();
         e.stopPropagation();
 
         const rect = chatWindowRef.current?.getBoundingClientRect();
+        if (!rect) return;
 
         resizeRef.current = {
             startX: e.clientX,
             startY: e.clientY,
-            startWidth: size.width,
-            startHeight: size.height,
-            startLeft: rect ? rect.left : 0,
-            startTop: rect ? rect.top : 0
+            startWidth: sizeRef.current.width,
+            startHeight: sizeRef.current.height,
+            startLeft: rect.left,
+            startTop: rect.top
         };
+
+        // Ensure we have a valid starting positionRef if it was null
+        if (!positionRef.current) {
+            positionRef.current = { x: rect.left, y: rect.top };
+        }
     };
 
     useEffect(() => {
         const handleResizeMouseMove = (e: MouseEvent) => {
-            if (!resizeDir) return;
+            if (!resizeDirRef.current) return;
             e.preventDefault();
 
+            const dir = resizeDirRef.current;
             const deltaX = e.clientX - resizeRef.current.startX;
             const deltaY = e.clientY - resizeRef.current.startY;
 
             let newWidth = resizeRef.current.startWidth;
             let newHeight = resizeRef.current.startHeight;
-            let newLeft = position ? position.x : resizeRef.current.startLeft; // Fallback to current rect if pos is null logic needed? 
-            // Actually, if position is null (fixed bottom-right), we need to set it to absolute to resize from top/left.
-            // For simplicity, let's assume once resized/moved, it stays absolute.
+            let newLeft = resizeRef.current.startLeft;
+            let newTop = resizeRef.current.startTop;
 
-            // If dragging top or left, we change position AND size.
-            // But 'position' state handles x/y. 
-            // We need to sync them.
-
-            // Current Logic Issue: 'position' state might be null initially (fixed mode).
-            // We should enforce absolute positioning once interaction starts.
-
-            let currentX = resizeRef.current.startLeft;
-            let currentY = resizeRef.current.startTop;
-
-            if (resizeDir.includes('e')) {
+            if (dir.includes('e')) {
                 newWidth = Math.max(320, Math.min(800, resizeRef.current.startWidth + deltaX));
             }
-            if (resizeDir.includes('w')) {
-                newWidth = Math.max(320, Math.min(800, resizeRef.current.startWidth - deltaX));
-                if (newWidth !== resizeRef.current.startWidth - deltaX) {
-                    // Constraint hit, don't move X
+            if (dir.includes('w')) {
+                const potentialWidth = resizeRef.current.startWidth - deltaX;
+                if (potentialWidth >= 320 && potentialWidth <= 800) {
+                    newWidth = potentialWidth;
+                    newLeft = resizeRef.current.startLeft + deltaX;
+                } else if (potentialWidth < 320) {
+                    newWidth = 320;
+                    newLeft = resizeRef.current.startLeft + (resizeRef.current.startWidth - 320);
                 } else {
-                    currentX = resizeRef.current.startLeft + deltaX;
+                    newWidth = 800;
+                    newLeft = resizeRef.current.startLeft + (resizeRef.current.startWidth - 800);
                 }
             }
-            if (resizeDir.includes('s')) {
+            if (dir.includes('s')) {
                 newHeight = Math.max(400, Math.min(800, resizeRef.current.startHeight + deltaY));
             }
-            if (resizeDir.includes('n')) {
-                newHeight = Math.max(400, Math.min(800, resizeRef.current.startHeight - deltaY));
-                if (newHeight !== resizeRef.current.startHeight - deltaY) {
-                    // Constraint hit
+            if (dir.includes('n')) {
+                const potentialHeight = resizeRef.current.startHeight - deltaY;
+                if (potentialHeight >= 400 && potentialHeight <= 800) {
+                    newHeight = potentialHeight;
+                    newTop = resizeRef.current.startTop + deltaY;
+                } else if (potentialHeight < 400) {
+                    newHeight = 400;
+                    newTop = resizeRef.current.startTop + (resizeRef.current.startHeight - 400);
                 } else {
-                    currentY = resizeRef.current.startTop + deltaY;
+                    newHeight = 800;
+                    newTop = resizeRef.current.startTop + (resizeRef.current.startHeight - 800);
                 }
             }
 
-            setSize({ width: newWidth, height: newHeight });
+            // Update Refs
+            sizeRef.current = { width: newWidth, height: newHeight };
+            if (dir.includes('w') || dir.includes('n')) {
+                positionRef.current = { x: newLeft, y: newTop };
+            }
 
-            // Only update position if we are resizing from Top or Left, OR if we were null before
-            // If we are resizing 'e' or 's', position X/Y usually doesn't change unless we want to convert from fixed to absolute now.
-            // Let's force absolute position update on any resize to ensure it doesn't snap back.
-            setPosition({ x: currentX, y: currentY });
+            // Direct DOM update
+            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+            animationFrameId.current = requestAnimationFrame(() => {
+                if (chatWindowRef.current) {
+                    chatWindowRef.current.style.width = `${newWidth}px`;
+                    chatWindowRef.current.style.height = `${newHeight}px`;
+                    if (dir.includes('w') || dir.includes('n')) {
+                        chatWindowRef.current.style.left = `${newLeft}px`;
+                        chatWindowRef.current.style.top = `${newTop}px`;
+                        chatWindowRef.current.style.bottom = 'auto'; // ensure overrides
+                        chatWindowRef.current.style.right = 'auto';
+                    }
+                }
+            });
         };
 
         const handleResizeMouseUp = () => {
-            setResizeDir(null);
+            if (resizeDirRef.current) {
+                resizeDirRef.current = null;
+                // Sync state
+                setSize(sizeRef.current);
+                if (positionRef.current) {
+                    setPosition(positionRef.current);
+                }
+                if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+            }
         };
 
-        if (resizeDir) {
-            document.addEventListener('mousemove', handleResizeMouseMove);
-            document.addEventListener('mouseup', handleResizeMouseUp);
-        }
+        document.addEventListener('mousemove', handleResizeMouseMove);
+        document.addEventListener('mouseup', handleResizeMouseUp);
 
         return () => {
             document.removeEventListener('mousemove', handleResizeMouseMove);
             document.removeEventListener('mouseup', handleResizeMouseUp);
+            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
         };
-    }, [resizeDir, position]); // Depend on position to get current X/Y if needed? actually read from ref is safer for concurrent updates
+    }, []);
 
 
 
