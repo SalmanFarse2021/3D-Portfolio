@@ -75,29 +75,29 @@ export default function ResumePage() {
                 {/* Inputs Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24 animate-fade-in">
                     {/* Box 1: Your Resume */}
-                    <div className="glass-effect rounded-2xl p-8 border border-white/10 relative group overflow-hidden">
+                    <div className="glass-effect rounded-2xl p-8 border border-white/10 relative group overflow-hidden flex flex-col">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <span className="text-primary-400">1.</span> Your Resume (PDF)
                         </h3>
-                        <div className="border-2 border-dashed border-gray-700 group-hover:border-primary-500/50 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors bg-gray-900/20">
-                            <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                                <span className="text-2xl">📄</span>
+                        <div className="border-2 border-dashed border-gray-700 group-hover:border-primary-500/50 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors bg-gray-900/20 h-[400px]">
+                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                                <span className="text-3xl">📄</span>
                             </div>
-                            <p className="text-white font-medium mb-1">Upload a file</p>
-                            <p className="text-gray-500 text-sm mb-4">No file chosen</p>
-                            <p className="text-xs text-gray-500 font-mono">PDF, DOCX up to 5MB</p>
+                            <p className="text-white font-medium mb-2 text-lg">Upload a file</p>
+                            <p className="text-gray-500 text-sm mb-6">No file chosen</p>
+                            <p className="text-xs text-gray-500 font-mono border border-gray-700 rounded-full px-3 py-1">PDF, DOCX up to 5MB</p>
                         </div>
                     </div>
 
                     {/* Box 2: Target Role */}
-                    <div className="glass-effect rounded-2xl p-8 border border-white/10 relative group overflow-hidden">
+                    <div className="glass-effect rounded-2xl p-8 border border-white/10 relative group overflow-hidden flex flex-col">
                         <div className="absolute inset-0 bg-gradient-to-br from-accent-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <span className="text-accent-400">2.</span> Target Role <span className="text-gray-500 text-sm font-normal ml-auto">(Optional)</span>
                         </h3>
                         <textarea
-                            className="w-full h-[180px] bg-gray-900/20 border border-gray-700 rounded-xl p-4 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-accent-500/50 resize-none transition-colors text-sm"
+                            className="w-full h-[400px] bg-gray-900/20 border border-gray-700 rounded-xl p-6 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-accent-500/50 resize-none transition-colors text-base leading-relaxed"
                             placeholder="Paste job description here..."
                         />
                     </div>
