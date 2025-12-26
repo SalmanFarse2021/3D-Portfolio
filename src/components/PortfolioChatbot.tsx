@@ -162,7 +162,16 @@ export default function PortfolioChatbot() {
         if (!chatWindowRef.current) return;
 
         // Don't start dragging if clicking on a button or resize handle
-        if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('.cursor-se-resize')) return;
+        if ((e.target as HTMLElement).closest('button') ||
+            (e.target as HTMLElement).closest('.cursor-nw-resize') ||
+            (e.target as HTMLElement).closest('.cursor-ne-resize') ||
+            (e.target as HTMLElement).closest('.cursor-sw-resize') ||
+            (e.target as HTMLElement).closest('.cursor-se-resize') ||
+            (e.target as HTMLElement).closest('.cursor-n-resize') ||
+            (e.target as HTMLElement).closest('.cursor-s-resize') ||
+            (e.target as HTMLElement).closest('.cursor-e-resize') ||
+            (e.target as HTMLElement).closest('.cursor-w-resize')
+        ) return;
 
         setIsDragging(true);
 
@@ -214,40 +223,93 @@ export default function PortfolioChatbot() {
 
     // Resizing State
     const [size, setSize] = useState<{ width: number, height: number }>({ width: 400, height: 600 });
-    const [isResizing, setIsResizing] = useState(false);
-    const resizeRef = useRef<{ startX: number, startY: number, startWidth: number, startHeight: number }>({ startX: 0, startY: 0, startWidth: 0, startHeight: 0 });
+    const [resizeDir, setResizeDir] = useState<string | null>(null);
+    const resizeRef = useRef<{
+        startX: number,
+        startY: number,
+        startWidth: number,
+        startHeight: number,
+        startLeft: number,
+        startTop: number
+    }>({ startX: 0, startY: 0, startWidth: 0, startHeight: 0, startLeft: 0, startTop: 0 });
 
-    const handleResizeMouseDown = (e: React.MouseEvent) => {
-        setIsResizing(true);
+    const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
+        setResizeDir(direction);
         e.preventDefault();
-        e.stopPropagation(); // Prevent drag from triggering
+        e.stopPropagation();
+
+        const rect = chatWindowRef.current?.getBoundingClientRect();
+
         resizeRef.current = {
             startX: e.clientX,
             startY: e.clientY,
             startWidth: size.width,
-            startHeight: size.height
+            startHeight: size.height,
+            startLeft: rect ? rect.left : 0,
+            startTop: rect ? rect.top : 0
         };
     };
 
     useEffect(() => {
         const handleResizeMouseMove = (e: MouseEvent) => {
-            if (!isResizing) return;
+            if (!resizeDir) return;
             e.preventDefault();
 
             const deltaX = e.clientX - resizeRef.current.startX;
             const deltaY = e.clientY - resizeRef.current.startY;
 
-            setSize({
-                width: Math.max(320, Math.min(800, resizeRef.current.startWidth + deltaX)),
-                height: Math.max(400, Math.min(800, resizeRef.current.startHeight + deltaY))
-            });
+            let newWidth = resizeRef.current.startWidth;
+            let newHeight = resizeRef.current.startHeight;
+            let newLeft = position ? position.x : resizeRef.current.startLeft; // Fallback to current rect if pos is null logic needed? 
+            // Actually, if position is null (fixed bottom-right), we need to set it to absolute to resize from top/left.
+            // For simplicity, let's assume once resized/moved, it stays absolute.
+
+            // If dragging top or left, we change position AND size.
+            // But 'position' state handles x/y. 
+            // We need to sync them.
+
+            // Current Logic Issue: 'position' state might be null initially (fixed mode).
+            // We should enforce absolute positioning once interaction starts.
+
+            let currentX = resizeRef.current.startLeft;
+            let currentY = resizeRef.current.startTop;
+
+            if (resizeDir.includes('e')) {
+                newWidth = Math.max(320, Math.min(800, resizeRef.current.startWidth + deltaX));
+            }
+            if (resizeDir.includes('w')) {
+                newWidth = Math.max(320, Math.min(800, resizeRef.current.startWidth - deltaX));
+                if (newWidth !== resizeRef.current.startWidth - deltaX) {
+                    // Constraint hit, don't move X
+                } else {
+                    currentX = resizeRef.current.startLeft + deltaX;
+                }
+            }
+            if (resizeDir.includes('s')) {
+                newHeight = Math.max(400, Math.min(800, resizeRef.current.startHeight + deltaY));
+            }
+            if (resizeDir.includes('n')) {
+                newHeight = Math.max(400, Math.min(800, resizeRef.current.startHeight - deltaY));
+                if (newHeight !== resizeRef.current.startHeight - deltaY) {
+                    // Constraint hit
+                } else {
+                    currentY = resizeRef.current.startTop + deltaY;
+                }
+            }
+
+            setSize({ width: newWidth, height: newHeight });
+
+            // Only update position if we are resizing from Top or Left, OR if we were null before
+            // If we are resizing 'e' or 's', position X/Y usually doesn't change unless we want to convert from fixed to absolute now.
+            // Let's force absolute position update on any resize to ensure it doesn't snap back.
+            setPosition({ x: currentX, y: currentY });
         };
 
         const handleResizeMouseUp = () => {
-            setIsResizing(false);
+            setResizeDir(null);
         };
 
-        if (isResizing) {
+        if (resizeDir) {
             document.addEventListener('mousemove', handleResizeMouseMove);
             document.addEventListener('mouseup', handleResizeMouseUp);
         }
@@ -256,7 +318,8 @@ export default function PortfolioChatbot() {
             document.removeEventListener('mousemove', handleResizeMouseMove);
             document.removeEventListener('mouseup', handleResizeMouseUp);
         };
-    }, [isResizing]);
+    }, [resizeDir, position]); // Depend on position to get current X/Y if needed? actually read from ref is safer for concurrent updates
+
 
 
     return (
