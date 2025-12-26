@@ -206,39 +206,39 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                     </div>
                 </div>
             </div>
-        </div>
 
-            {/* Lightbox / Full Screen View */ }
-    {
-        isLightboxOpen && (
-            <div
-                className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-fade-in p-4"
-                onClick={() => setIsLightboxOpen(false)}
-            >
-                <button
-                    onClick={() => setIsLightboxOpen(false)}
-                    className="absolute top-6 right-6 p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all z-50 pointer-events-auto"
-                >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
 
-                <div className="relative w-full h-full flex items-center justify-center p-4">
-                    <div className="relative w-full h-full max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                        <Image
-                            src={displayImages[currentIndex]}
-                            alt={project.title}
-                            fill
-                            className="object-contain"
-                            quality={100}
-                            priority
-                        />
+            {/* Lightbox / Full Screen View */}
+            {
+                isLightboxOpen && (
+                    <div
+                        className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-fade-in p-4"
+                        onClick={() => setIsLightboxOpen(false)}
+                    >
+                        <button
+                            onClick={() => setIsLightboxOpen(false)}
+                            className="absolute top-6 right-6 p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all z-50 pointer-events-auto"
+                        >
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <div className="relative w-full h-full flex items-center justify-center p-4">
+                            <div className="relative w-full h-full max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                                <Image
+                                    src={displayImages[currentIndex]}
+                                    alt={project.title}
+                                    fill
+                                    className="object-contain"
+                                    quality={100}
+                                    priority
+                                />
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        )
-    }
+                )
+            }
         </div >
     );
 }
