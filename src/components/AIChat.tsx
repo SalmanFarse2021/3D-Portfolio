@@ -122,18 +122,31 @@ export default function AIChat() {
                 }
             } else {
                 // Normal RAG chat mode
-                // Prepare messages history for context
-                const newMessages = [...messages, { role: 'user', content: userMessage }];
-                const apiMessages = newMessages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                }));
+                // Use sessionId from localStorage or generate new
+                let sessionId = localStorage.getItem('chatSessionId');
+                if (!sessionId) {
+                    sessionId = crypto.randomUUID();
+                    localStorage.setItem('chatSessionId', sessionId);
+                }
 
                 response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: apiMessages }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-conversation-id': sessionId
+                    },
+                    body: JSON.stringify({
+                        message: userMessage,
+                        conversationId: sessionId
+                    }),
                 });
+
+                // Store returned conversation ID if updated
+                const returnedId = response.headers.get('x-conversation-id');
+                if (returnedId) {
+                    localStorage.setItem('chatSessionId', returnedId);
+                }
+
                 data = await response.json();
 
                 if (data.error) throw new Error(data.error);
