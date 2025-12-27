@@ -435,24 +435,23 @@ export default function PortfolioChatbot() {
             {/* Chat Window */}
             <div
                 ref={chatWindowRef}
-                style={{
-                    // Only apply custom position/size on non-mobile (md breakpoint ~768px)
-                    // We'll handle this via a media query check or CSS variables, but inline styles override classes.
-                    // Best approach: Use a CSS class for mobile overrides that uses !important, or conditionally apply style.
-                    // For simplicity in this specialized drag component, we'll check window width in effect or just rely on CSS @media queries overriding if possible.
-                    // Since inline styles have high specificity, we will wrap them in a conditional or clear them on mobile.
-                    // Actually, let's use a media query hook or just CSS classes with !important for mobile to override these inline styles.
-                    // Or better: cleaner React way ->
-                }}
+                style={!isMobile ? {
+                    ...(position ? {
+                        left: `${position.x}px`,
+                        top: `${position.y}px`,
+                        transform: 'none',
+                        bottom: 'auto',
+                        right: 'auto'
+                    } : {}),
+                    width: `${size.width}px`,
+                    height: `${size.height}px`
+                } : {}}
                 className={`fixed z-50 transition-[opacity,transform] duration-500 cubic-bezier(0.16, 1, 0.3, 1) 
                     ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none translate-y-8'}
-                    
-                    /* Mobile Styles (Default) */
-                    inset-x-0 bottom-0 w-full h-[85vh] rounded-t-2xl md:rounded-2xl
-                    
-                    /* Desktop Styles (md:...) - we need to unset the mobile defaults and let inline styles take over, 
-                       but inline styles are always present. 
-                       SO: We will modify the style attribute to be empty on mobile. */
+                    ${isMobile
+                        ? 'inset-x-0 bottom-0 w-full h-[85vh] rounded-t-2xl'
+                        : (!position ? 'bottom-6 right-4 rounded-2xl' : 'rounded-2xl')
+                    }
                 `}
             >
                 {/* We need to use a resize listener to disable custom inline styles on mobile */}
