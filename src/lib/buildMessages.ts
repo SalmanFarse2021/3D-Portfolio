@@ -6,10 +6,18 @@ import { memoryStore, ChatMessage } from '@/lib/memoryStore';
 export async function buildMessages(
     sessionId: string,
     systemPrompt: string,
-    contextBlock: string | null
+    contextBlock: string | null,
+    clientHistory?: any[] // Optional stateless history from client
 ): Promise<any[]> {
     // 1. Fetch recent history
-    const history = await memoryStore.getHistory(sessionId);
+    // If clientHistory is provided, use it (stateless mode). Otherwise fallback to DB/Memory (stateful mode)
+    let history: any[] = [];
+
+    if (clientHistory && clientHistory.length > 0) {
+        history = clientHistory.slice(-10); // Use last 10 messages from client to be safe to token limits
+    } else {
+        history = await memoryStore.getHistory(sessionId);
+    }
 
     // 2. Prepare System Message
     // We append the context block to the system prompt or as a separate system component
