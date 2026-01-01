@@ -146,6 +146,10 @@
             "Node.js"
         ],
         "image": "/projects/Startup Builder.png",
+        "images": [
+            "/projects/Startup Builder.png",
+            "/projects/Startup Builder2.png"
+        ],
         "githubLink": "https://github.com/SalmanFarse2021/Startup-Builder.git",
         "position": [
             0,
