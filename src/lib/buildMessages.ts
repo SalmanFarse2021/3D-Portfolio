@@ -7,14 +7,12 @@ export async function buildMessages(
     sessionId: string,
     systemPrompt: string,
     contextBlock: string | null,
-    clientHistory?: any[] // Optional stateless history from client
+    explicitHistory?: { role: 'user' | 'assistant' | 'system' | 'function'; content: string | null; name?: string }[]
 ): Promise<any[]> {
-    // 1. Fetch recent history
-    // If clientHistory is provided, use it (stateless mode). Otherwise fallback to DB/Memory (stateful mode)
-    let history: any[] = [];
-
-    if (clientHistory && clientHistory.length > 0) {
-        history = clientHistory.slice(-10); // Use last 10 messages from client to be safe to token limits
+    // 1. Fetch recent history (Prefer explicit client history if provided, otherwise DB)
+    let history;
+    if (explicitHistory && explicitHistory.length > 0) {
+        history = explicitHistory;
     } else {
         history = await memoryStore.getHistory(sessionId);
     }
@@ -31,7 +29,7 @@ export async function buildMessages(
             role: m.role,
             content: m.content || "",
             name: m.name,
-            function_call: m.function_call
+            // function_call: m.function_call // Removed to avoid type issues with explicit history for now, unless needed
         }))
     ];
 

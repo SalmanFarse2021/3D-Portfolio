@@ -98,13 +98,14 @@ export default function PortfolioChatbot() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: userMsg,
-                    previousMessages: messages.map(m => ({
-                        role: m.role === 'ai' ? 'assistant' : 'user',
-                        content: m.content
-                    })), // Send history for stateless memory
                     conversationId: conversationId || undefined,
                     mode,
-                    repoFilter: repoEx
+                    repoFilter: repoEx,
+                    history: messages.map(m => ({
+                        role: m.role === 'ai' ? 'assistant' : 'user',
+                        content: m.content || "",
+                        // name: m.role === 'user' ? 'User' : 'Assistant'
+                    }))
                 })
             });
 

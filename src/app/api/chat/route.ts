@@ -155,9 +155,9 @@ export async function POST(request: NextRequest) {
             conversationId: z.string().optional(),
             repoFilter: z.string().optional(),
             mode: z.enum(['general', 'recruiter', 'tech']).optional(),
-            previousMessages: z.array(z.object({
-                role: z.enum(['user', 'system', 'assistant', 'function']),
-                content: z.string().nullable().optional(),
+            history: z.array(z.object({
+                role: z.enum(['user', 'assistant', 'system', 'function']),
+                content: z.string().nullable(),
                 name: z.string().optional()
             })).optional()
         });
@@ -167,16 +167,15 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
         }
 
-        const { message: userQuery, conversationId: reqConvId, repoFilter, mode = 'general', previousMessages } = validation.data;
+        const { message: userQuery, conversationId: reqConvId, repoFilter, mode = 'general', history: clientHistory } = validation.data;
         conversationId = reqConvId || uuidv4();
         const start = Date.now();
         // const TOP_K moved up
 
         logger.info('Chat Request Received', { conversationId, mode, repoFilter });
 
-        // 1. Save User Message
-        // We still save to memoryStore as a backup/log, but we don't rely on it for context if previousMessages is present
-        await memoryStore.addTurn(conversationId, 'user', userQuery);
+        // 1. Save User Message (Async - Fire and Forget for persistence, but we trust client history for now)
+        memoryStore.addTurn(conversationId, 'user', userQuery);
 
         // 2. Resolve Context Logic (Step 3)
         const { activeRepo, isAmbiguous } = await resolveProjectContext(conversationId, userQuery);
@@ -219,12 +218,12 @@ ${doc.content}
             activeRepo || null
         );
 
-        // 5. Build Messages (Step 4)
+        // 5. Build Messages (Step 4) - Pass clientHistory to enforce statelessness
         apiMessages = await buildMessages(
             conversationId,
             baseSystemPrompt,
             ragContext,
-            previousMessages as any[] // Pass client-side history
+            clientHistory
         );
 
         // 6. Loop for Function Calling
