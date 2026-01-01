@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export default function Experience() {
-    const [activeTab, setActiveTab] = useState<'education' | 'experience'>('education');
+    const [activeTab, setActiveTab] = useState<'education' | 'experience'>('experience');
 
     useEffect(() => {
         const handleHashChange = () => {
@@ -53,17 +53,17 @@ export default function Experience() {
             link: undefined
         },
         {
-            institution: "HK Signature",
-            role: "Founder & CEO",
-            period: "Aug 2025 - Present",
-            description: "Founded an AI-driven custom clothing brand allowing users to design apparel and receive automated, dynamic pricing. Leading a team of 10 while managing all technical operations, including full website development and maintenance. Built the end-to-end product pipeline—from AI design generation to order fulfillment—ensuring a smooth and scalable customer experience.",
-            link: undefined
-        },
-        {
             institution: "University Center, UTA",
             role: "Crew Lead",
             period: "May 2024 - Current",
             description: "Leading a team of 20+ staff to organize and execute high-profile university events, ensuring smooth and timely operations. Overseeing logistics, staffing, scheduling, and on-site coordination to deliver seamless experiences for diverse campus activities.",
+            link: undefined
+        },
+        {
+            institution: "HK Signature",
+            role: "Founder & CEO",
+            period: "May 2023 - Present",
+            description: "Founded an AI-driven custom clothing brand allowing users to design apparel and receive automated, dynamic pricing. Leading a team of 10 while managing all technical operations, including full website development and maintenance. Built the end-to-end product pipeline—from AI design generation to order fulfillment—ensuring a smooth and scalable customer experience.",
             link: undefined
         },
         {
