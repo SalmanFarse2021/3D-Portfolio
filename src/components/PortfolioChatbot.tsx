@@ -85,7 +85,10 @@ export default function PortfolioChatbot() {
 
         const userMsg = textEx.trim();
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+
+        // Create the new history array locally to ensure we send the latest message
+        const newLog = [...messages, { role: 'user' as const, content: userMsg }];
+        setMessages(newLog);
         setIsLoading(true);
 
         if (textareaRef.current) {
@@ -101,7 +104,7 @@ export default function PortfolioChatbot() {
                     conversationId: conversationId || undefined,
                     mode,
                     repoFilter: repoEx,
-                    history: messages.map(m => ({
+                    history: newLog.map(m => ({
                         role: m.role === 'ai' ? 'assistant' : 'user',
                         content: m.content || "",
                         // name: m.role === 'user' ? 'User' : 'Assistant'
