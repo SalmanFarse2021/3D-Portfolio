@@ -133,5 +133,24 @@
             0,
             0
         ]
+    },
+    {
+        "id": "startup-builder",
+        "title": "Startup Builder",
+        "description": "An autonomous multi-agent AI system that designs, builds, and prepares SaaS products from a single prompt.",
+        "technologies": [
+            "Python",
+            "LangChain",
+            "OpenAI",
+            "React",
+            "Node.js"
+        ],
+        "image": "/projects/Startup Builder.png",
+        "githubLink": "https://github.com/SalmanFarse2021/Startup-Builder.git",
+        "position": [
+            0,
+            0,
+            0
+        ]
     }
 ]
