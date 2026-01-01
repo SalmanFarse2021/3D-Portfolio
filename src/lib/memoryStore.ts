@@ -1,7 +1,7 @@
 import { Message } from './chatMemory';
+import clientPromise from '@/lib/mongodb';
 
-// Re-using the Message type from chatMemory to minimize friction, 
-// or we can redefine it here if we want to deprecate chatMemory.
+// Re-using the Message type from chatMemory to minimize friction
 export type ChatRole = 'user' | 'assistant' | 'system' | 'function';
 
 export interface ChatMessage {
@@ -13,46 +13,58 @@ export interface ChatMessage {
 }
 
 interface SessionData {
+    _id: string; // sessionId
     messages: ChatMessage[];
     lastAccessed: number;
     activeRepo?: string | null;
 }
 
+const DB_NAME = '3d_portfolio';
+const COLLECTION_NAME = 'chat_sessions';
+
 class MemoryStore {
-    private sessions: Map<string, SessionData>;
     private readonly MAX_HISTORY = 12; // Keep last 12 messages
-    private readonly SESSION_TTL = 30 * 60 * 1000; // 30 minutes
-
-    constructor() {
-        this.sessions = new Map();
-
-        // Periodic cleanup
-        setInterval(() => this.cleanupSessions(), 5 * 60 * 1000); // Every 5 mins
-    }
+    private localCache: Map<string, SessionData> = new Map();
 
     /**
      * Get conversation history for a session
      */
     async getHistory(sessionId: string): Promise<ChatMessage[]> {
-        const session = this.sessions.get(sessionId);
-        if (!session) return [];
+        try {
+            const client = await clientPromise;
+            const db = client.db(DB_NAME);
+            const collection = db.collection<SessionData>(COLLECTION_NAME);
 
-        // Update last accessed
-        session.lastAccessed = Date.now();
-        return session.messages;
+            const session = await collection.findOne({ _id: sessionId });
+
+            if (session) {
+                // Async update last accessed (fire and forget to speed up read)
+                collection.updateOne(
+                    { _id: sessionId },
+                    { $set: { lastAccessed: Date.now() } }
+                ).catch(err => console.error('Failed to update lastAccessed:', err));
+
+                // Sync to local cache just in case
+                this.localCache.set(sessionId, session);
+                return session.messages || [];
+            }
+        } catch (error) {
+            console.error('Error fetching chat history from DB, checking local cache:', error);
+        }
+
+        // Fallback to local cache
+        const localSession = this.localCache.get(sessionId);
+        if (localSession) {
+            return localSession.messages || [];
+        }
+
+        return [];
     }
 
     /**
-     * Add a message turn to the session
+     * Add a message turn to the session with automatic pruning
      */
     async addTurn(sessionId: string, role: ChatRole, content: string | null, extra?: Partial<ChatMessage>): Promise<void> {
-        let session = this.sessions.get(sessionId);
-
-        if (!session) {
-            session = { messages: [], lastAccessed: Date.now() };
-            this.sessions.set(sessionId, session);
-        }
-
         // Truncate content to prevent massive context build-up
         if (content && content.length > 20000) {
             content = content.slice(0, 20000) + '...[TRUNCATED]';
@@ -65,50 +77,106 @@ class MemoryStore {
             ...extra
         };
 
-        session.messages.push(message);
-        session.lastAccessed = Date.now();
+        // 1. Update Local Cache (Immediate Fallback)
+        const existingSession = this.localCache.get(sessionId) || {
+            _id: sessionId,
+            messages: [],
+            lastAccessed: Date.now(),
+            activeRepo: null
+        };
 
-        this.prune(sessionId);
+        const updatedMessages = [...existingSession.messages, message].slice(-this.MAX_HISTORY);
+        this.localCache.set(sessionId, {
+            ...existingSession,
+            messages: updatedMessages,
+            lastAccessed: Date.now()
+        });
+
+        // 2. Try DB Update
+        try {
+            const client = await clientPromise;
+            const db = client.db(DB_NAME);
+            const collection = db.collection<SessionData>(COLLECTION_NAME);
+
+            // Upsert session, append message, and keep only the last MAX_HISTORY messages
+            await collection.updateOne(
+                { _id: sessionId },
+                {
+                    $push: {
+                        messages: {
+                            $each: [message],
+                            $slice: -this.MAX_HISTORY
+                        }
+                    },
+                    $set: { lastAccessed: Date.now() },
+                    $setOnInsert: { activeRepo: null }
+                },
+                { upsert: true }
+            );
+        } catch (error) {
+            console.error('Error adding chat turn to DB (using local cache only):', error);
+        }
     }
 
     async getActiveRepo(sessionId: string): Promise<string | null> {
-        const session = this.sessions.get(sessionId);
-        return session?.activeRepo || null;
+        try {
+            const client = await clientPromise;
+            const db = client.db(DB_NAME);
+            const collection = db.collection<SessionData>(COLLECTION_NAME);
+
+            const session = await collection.findOne({ _id: sessionId }, { projection: { activeRepo: 1 } });
+            if (session) {
+                // Sync local
+                const cached = this.localCache.get(sessionId);
+                if (cached) {
+                    cached.activeRepo = session.activeRepo;
+                    this.localCache.set(sessionId, cached);
+                }
+                return session.activeRepo || null;
+            }
+        } catch (error) {
+            console.error('Error getting active repo form DB:', error);
+        }
+
+        // Fallback
+        const cached = this.localCache.get(sessionId);
+        return cached?.activeRepo || null;
     }
 
     async setActiveRepo(sessionId: string, repo: string | null): Promise<void> {
-        let session = this.sessions.get(sessionId);
-        if (!session) {
-            session = { messages: [], lastAccessed: Date.now() };
-            this.sessions.set(sessionId, session);
+        // 1. Update Local
+        const cached = this.localCache.get(sessionId);
+        if (cached) {
+            cached.activeRepo = repo;
+            cached.lastAccessed = Date.now();
+            this.localCache.set(sessionId, cached);
+        } else {
+            this.localCache.set(sessionId, {
+                _id: sessionId,
+                messages: [],
+                lastAccessed: Date.now(),
+                activeRepo: repo
+            });
         }
-        session.activeRepo = repo;
-        session.lastAccessed = Date.now();
-    }
 
-    /**
-     * Prune history to keep only relevant context
-     */
-    private prune(sessionId: string): void {
-        const session = this.sessions.get(sessionId);
-        if (!session) return;
+        // 2. Try DB
+        try {
+            const client = await clientPromise;
+            const db = client.db(DB_NAME);
+            const collection = db.collection<SessionData>(COLLECTION_NAME);
 
-        // Keep system prompt (if we stored it, but usually we just build it per request)
-        // For now, we just keep the last N messages.
-        if (session.messages.length > this.MAX_HISTORY) {
-            session.messages = session.messages.slice(-this.MAX_HISTORY);
-        }
-    }
-
-    /**
-     * Remove old sessions
-     */
-    private cleanupSessions(): void {
-        const now = Date.now();
-        for (const [id, session] of Array.from(this.sessions.entries())) {
-            if (now - session.lastAccessed > this.SESSION_TTL) {
-                this.sessions.delete(id);
-            }
+            await collection.updateOne(
+                { _id: sessionId },
+                {
+                    $set: {
+                        activeRepo: repo,
+                        lastAccessed: Date.now()
+                    }
+                },
+                { upsert: true }
+            );
+        } catch (error) {
+            console.error('Error setting active repo in DB:', error);
         }
     }
 }
